@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amanda's Japanese Workbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #e8a0b0; --pink-light: #fdf0f3; --pink-mid: #f5d0da;
+    --red: #c0392b; --dark: #2c2c2c; --mid: #555; --light: #888;
+    --bg: #fafafa; --white: #fff; --border: #e8e8e8;
+    --green: #27ae60; --blue: #2980b9; --orange: #e67e22;
+    --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; }
+  .jp { font-family: 'Noto Sans JP', sans-serif; }
+
+  /* HEADER */
+  header { background: linear-gradient(135deg, #c0392b 0%, #e8a0b0 100%); color: white; padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header span { font-size: 1.8rem; }
+  .header-sub { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+
+  /* TABS */
+  .tabs { display: flex; background: white; border-bottom: 2px solid var(--border); overflow-x: auto; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .tab { padding: 14px 18px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--light); border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .tab:hover { color: var(--red); background: var(--pink-light); }
+  .tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+  /* SECTIONS */
+  .section { display: none; padding: 24px 20px; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--light); margin-bottom: 12px; }
+
+  /* CATEGORY FILTER */
+  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--mid); transition: all 0.18s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--red); color: white; border-color: var(--red); }
+
+  /* FLASHCARD */
+  .flashcard-wrap { perspective: 1000px; width: 100%; max-width: 420px; height: 200px; margin: 0 auto 20px; cursor: pointer; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s; border-radius: var(--radius); }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; box-shadow: var(--shadow); border: 2px solid var(--border); }
+  .flashcard-front { background: white; }
+  .flashcard-back { background: var(--pink-light); transform: rotateY(180deg); border-color: var(--pink); }
+  .fc-jp { font-size: 2rem; font-family: 'Noto Sans JP', sans-serif; margin-bottom: 8px; }
+  .fc-romaji { font-size: 1rem; color: var(--red); font-weight: 600; margin-bottom: 4px; }
+  .fc-en { font-size: 0.9rem; color: var(--mid); }
+  .fc-hint { font-size: 0.72rem; color: var(--light); margin-top: 10px; }
+  .fc-category { font-size: 0.7rem; background: var(--pink-mid); color: var(--red); border-radius: 10px; padding: 2px 8px; margin-bottom: 10px; font-weight: 600; }
+
+  /* FLASHCARD CONTROLS */
+  .fc-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+  .btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+  .btn-primary { background: var(--red); color: white; }
+  .btn-primary:hover { background: #a93226; }
+  .btn-outline { background: white; color: var(--red); border: 2px solid var(--red); }
+  .btn-outline:hover { background: var(--pink-light); }
+  .btn-sm { padding: 7px 14px; font-size: 0.8rem; border-radius: 6px; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #219a52; }
+  .fc-counter { font-size: 0.85rem; color: var(--mid); min-width: 70px; text-align: center; }
+
+  /* VOCAB LIST */
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .vocab-item { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .vocab-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1.2rem; margin-bottom: 3px; }
+  .vocab-romaji { font-size: 0.78rem; color: var(--red); font-weight: 600; }
+  .vocab-en { font-size: 0.82rem; color: var(--mid); margin-top: 2px; }
+
+  /* QUIZ */
+  .quiz-question { font-size: 1.1rem; text-align: center; margin-bottom: 20px; line-height: 1.5; }
+  .quiz-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1.8rem; display: block; margin-bottom: 4px; }
+  .quiz-romaji { font-size: 0.9rem; color: var(--red); font-weight: 600; }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .quiz-opt { padding: 14px; border-radius: 8px; border: 2px solid var(--border); background: white; cursor: pointer; font-size: 0.9rem; font-weight: 500; text-align: center; transition: all 0.18s; }
+  .quiz-opt:hover:not(.disabled) { border-color: var(--red); background: var(--pink-light); }
+  .quiz-opt.correct { background: #d5f5e3; border-color: var(--green); color: var(--green); }
+  .quiz-opt.wrong { background: #fde8e8; border-color: var(--red); color: var(--red); }
+  .quiz-opt.disabled { cursor: default; }
+  .quiz-feedback { text-align: center; font-weight: 600; font-size: 0.95rem; min-height: 28px; margin-bottom: 12px; }
+  .quiz-score { text-align: center; font-size: 0.85rem; color: var(--mid); margin-bottom: 16px; }
+
+  /* TYPING */
+  .typing-prompt { text-align: center; margin-bottom: 16px; }
+  .typing-prompt .en-word { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+  .typing-prompt .hint { font-size: 0.8rem; color: var(--light); }
+  .typing-input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: 'Noto Sans JP', sans-serif; text-align: center; outline: none; transition: border-color 0.2s; }
+  .typing-input:focus { border-color: var(--red); }
+  .typing-input.correct { border-color: var(--green); background: #d5f5e3; }
+  .typing-input.wrong { border-color: var(--red); background: #fde8e8; }
+  .typing-answer { text-align: center; font-size: 0.9rem; margin-top: 10px; min-height: 22px; color: var(--mid); }
+  .typing-answer .jp-answer { font-family: 'Noto Sans JP', sans-serif; color: var(--red); font-weight: 600; }
+
+  /* GRAMMAR */
+  .grammar-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .grammar-header { background: var(--pink-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--pink-mid); }
+  .grammar-title { font-weight: 700; font-size: 0.95rem; color: var(--dark); }
+  .grammar-tag { font-size: 0.7rem; background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .grammar-body { padding: 18px; display: none; }
+  .grammar-body.open { display: block; }
+  .grammar-pattern { background: #fff8f0; border-left: 4px solid var(--orange); padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 14px; font-family: 'Noto Sans JP', sans-serif; }
+  .grammar-pattern .pattern-jp { font-size: 1.1rem; }
+  .grammar-pattern .pattern-en { font-size: 0.82rem; color: var(--mid); margin-top: 3px; }
+  .example-row { display: flex; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .example-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .ex-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1rem; min-width: 180px; }
+  .ex-romaji { font-size: 0.78rem; color: var(--red); font-weight: 600; margin-top: 2px; }
+  .ex-en { font-size: 0.82rem; color: var(--mid); padding-top: 2px; }
+  .note-box { background: #fffbf0; border: 1px solid #f0d080; border-radius: 6px; padding: 10px 14px; font-size: 0.82rem; color: #7a6000; margin-top: 12px; }
+
+  /* FILL IN THE BLANK */
+  .fitb-sentence { font-size: 1rem; margin-bottom: 12px; line-height: 1.8; font-family: 'Noto Sans JP', sans-serif; }
+  .fitb-blank { display: inline-block; border-bottom: 2px solid var(--red); min-width: 80px; padding: 0 4px; text-align: center; font-weight: 600; color: var(--red); }
+  .fitb-input { border: none; border-bottom: 2px solid var(--red); outline: none; font-size: 1rem; font-family: 'Noto Sans JP', sans-serif; width: 80px; text-align: center; background: transparent; color: var(--dark); }
+  .fitb-feedback { font-size: 0.82rem; color: var(--mid); margin-top: 6px; }
+
+  /* PHRASES */
+  .phrase-group { margin-bottom: 24px; }
+  .phrase-group-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--pink-mid); display: flex; align-items: center; gap: 8px; }
+  .phrase-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .phrase-row:last-child { border-bottom: none; }
+  .phrase-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1rem; min-width: 160px; }
+  .phrase-romaji { font-size: 0.78rem; color: var(--red); font-weight: 600; margin-top: 2px; }
+  .phrase-en { font-size: 0.85rem; color: var(--mid); padding-top: 3px; }
+
+  /* KANA */
+  .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
+  .kana-section-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+  .kana-table { border-collapse: collapse; min-width: 400px; width: 100%; }
+  .kana-table th { background: var(--pink-light); font-size: 0.75rem; padding: 7px 10px; font-weight: 700; color: var(--mid); text-align: center; border: 1px solid var(--pink-mid); }
+  .kana-table td { border: 1px solid var(--border); padding: 0; text-align: center; vertical-align: middle; min-width: 52px; }
+  .kana-cell { padding: 8px 6px; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .kana-cell:hover { background: var(--pink-light); }
+  .kana-char { font-family: 'Noto Sans JP', sans-serif; font-size: 1.3rem; line-height: 1; }
+  .kana-rom { font-size: 0.7rem; color: var(--red); font-weight: 600; display: none; }
+  .kana-cell.revealed .kana-rom { display: block; }
+  .kana-cell.dakuten { background: #fff5f0; }
+  .kana-cell.combo { background: #f5f0ff; }
+  .kana-empty { background: var(--bg); }
+  .kana-drill-mode { background: var(--pink-light); border-radius: var(--radius); padding: 20px; text-align: center; margin-bottom: 20px; }
+  .kana-drill-char { font-family: 'Noto Sans JP', sans-serif; font-size: 4rem; line-height: 1; margin: 10px 0; }
+  .kana-drill-type { font-size: 0.75rem; color: var(--light); margin-bottom: 6px; }
+
+  /* CONJUGATION TABLE */
+  .conj-table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  .conj-table th, .conj-table td { border: 1px solid var(--border); padding: 9px 12px; font-size: 0.84rem; text-align: left; }
+  .conj-table th { background: var(--pink-light); font-weight: 700; color: var(--dark); }
+  .conj-table td:first-child { font-weight: 600; color: var(--mid); background: #fafafa; white-space: nowrap; }
+  .conj-table .aff { color: var(--green); }
+  .conj-table .neg { color: var(--red); }
+  .conj-table .jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1rem; display: block; }
+  .conj-table .rom { font-size: 0.72rem; color: var(--light); display: block; margin-top: 2px; }
+  /* ADJ GRID */
+  .adj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px; margin: 14px 0; }
+  .adj-item { background: var(--pink-light); border-radius: 8px; padding: 10px 12px; border: 1px solid var(--pink-mid); }
+  .adj-item .jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1.05rem; }
+  .adj-item .rom { font-size: 0.72rem; color: var(--red); font-weight: 600; margin-top: 2px; }
+  .adj-item .en { font-size: 0.78rem; color: var(--mid); margin-top: 2px; }
+  .adj-item.na-adj { background: #f0f5ff; border-color: #c0d0f0; }
+  /* SCORE BANNER */
+  .score-banner { background: linear-gradient(135deg, var(--red), var(--pink)); color: white; border-radius: var(--radius); padding: 16px 20px; text-align: center; margin-bottom: 20px; }
+  .score-banner .score-num { font-size: 2rem; font-weight: 700; }
+  .score-banner .score-label { font-size: 0.8rem; opacity: 0.9; }
+
+  /* MODE TABS */
+  .mode-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .mode-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; border: 2px solid var(--border); background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--mid); transition: all 0.18s; }
+  .mode-tab.active { background: var(--red); color: white; border-color: var(--red); }
+
+  /* PROGRESS */
+  .progress-bar-wrap { background: var(--border); border-radius: 10px; height: 6px; margin-bottom: 4px; }
+  .progress-bar { background: var(--red); border-radius: 10px; height: 6px; transition: width 0.4s; }
+
+  /* NUMBER CHARTS */
+  .num-chart { margin-top: 24px; }
+  .num-chart h3 { font-size: 0.8rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .num-chart-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .num-chart-table th { background: var(--red); color: white; padding: 7px 6px; font-size: 0.75rem; font-weight: 700; text-align: center; }
+  .num-chart-table td { border: 1px solid var(--border); padding: 9px 6px; text-align: center; }
+  .num-chart-table td.irr { background: #fff7e6; }
+  .nc-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 0.95rem; margin-bottom: 3px; }
+  .nc-rom { font-size: 0.68rem; color: var(--red); font-weight: 600; }
+  .nc-val { font-size: 0.68rem; color: var(--light); font-weight: 700; }
+  .irr-note { font-size: 0.75rem; color: var(--orange); margin-top: 7px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 500px) {
+    .quiz-options { grid-template-columns: 1fr; }
+    .vocab-grid { grid-template-columns: 1fr 1fr; }
+    .example-row { flex-direction: column; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span>🌸</span>
+  <div>
+    <h1>Amanda's Japanese Workbook</h1>
+    <div class="header-sub">Updated after each class · Week 1–3 content loaded</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showSection('kana')">🔤 Kana</div>
+  <div class="tab" onclick="showSection('vocab')">📚 Vocabulary</div>
+  <div class="tab" onclick="showSection('grammar')">📖 Grammar</div>
+  <div class="tab" onclick="showSection('phrases')">💬 Phrases</div>
+  <div class="tab" onclick="showSection('quiz')">🎯 Quiz Mode</div>
+</div>
+
+<!-- ═══════════════════════════ KANA ═══════════════════════════ -->
+<div id="sec-kana" class="section active">
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span class="card-title">Kana Drill Mode</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm btn-outline" onclick="setKanaDrillType('hiragana')">ひらがな</button>
+        <button class="btn btn-sm btn-outline" onclick="setKanaDrillType('katakana')">カタカナ</button>
+        <button class="btn btn-sm btn-outline" onclick="setKanaDrillType('both')">Both</button>
+      </div>
+    </div>
+    <div class="kana-drill-mode">
+      <div class="kana-drill-type" id="kana-drill-type">Hiragana</div>
+      <div class="kana-drill-char jp" id="kana-drill-char">あ</div>
+      <input class="typing-input" id="kana-drill-input" placeholder="type romaji..." style="max-width:200px;margin:10px auto;" onkeydown="if(event.key==='Enter')checkKanaDrill()">
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-primary btn-sm" onclick="checkKanaDrill()">Check</button>
+        <button class="btn btn-outline btn-sm" onclick="nextKanaDrill()">Skip →</button>
+      </div>
+      <div id="kana-drill-feedback" style="margin-top:10px;font-weight:600;min-height:22px;"></div>
+    </div>
+    <div style="text-align:center;font-size:0.8rem;color:var(--light);">Click any cell in the charts below to reveal/hide its romaji</div>
+  </div>
+
+  <div class="card">
+    <div class="kana-section-title">ひらがな Hiragana</div>
+    <div class="kana-grid-wrap" id="hiragana-main"></div>
+    <div style="margin-top:16px;" class="kana-section-title" style="font-size:0.85rem;">Combination Sounds</div>
+    <div class="kana-grid-wrap" id="hiragana-combo"></div>
+  </div>
+
+  <div class="card">
+    <div class="kana-section-title">カタカナ Katakana</div>
+    <div class="kana-grid-wrap" id="katakana-main"></div>
+    <div style="margin-top:16px;" class="kana-section-title" style="font-size:0.85rem;">Combination Sounds</div>
+    <div class="kana-grid-wrap" id="katakana-combo"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ VOCABULARY ═══════════════════════════ -->
+<div id="sec-vocab" class="section">
+
+  <div class="mode-tabs">
+    <div class="mode-tab active" onclick="setVocabMode('flashcard')">🃏 Flashcards</div>
+    <div class="mode-tab" onclick="setVocabMode('quiz')">❓ Quiz</div>
+    <div class="mode-tab" onclick="setVocabMode('type')">⌨️ Typing</div>
+    <div class="mode-tab" onclick="setVocabMode('list')">📋 List</div>
+  </div>
+
+  <div class="filter-row" id="vocab-filters"></div>
+
+  <!-- FLASHCARD MODE -->
+  <div id="vocab-flashcard-mode">
+    <div class="flashcard-wrap" onclick="flipCard()">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-front">
+          <div class="fc-category" id="fc-cat"></div>
+          <div class="fc-jp" id="fc-jp"></div>
+          <div class="fc-romaji" id="fc-romaji"></div>
+          <div class="fc-hint">tap to reveal →</div>
+        </div>
+        <div class="flashcard-back">
+          <div class="fc-en" id="fc-en" style="font-size:1.3rem;font-weight:600;color:var(--dark);"></div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-controls">
+      <button class="btn btn-outline btn-sm" onclick="prevCard()">← Prev</button>
+      <div class="fc-counter" id="fc-counter">1 / 1</div>
+      <button class="btn btn-primary btn-sm" onclick="nextCard()">Next →</button>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn btn-outline btn-sm" onclick="shuffleCards()">🔀 Shuffle</button>
+    </div>
+  </div>
+
+  <!-- QUIZ MODE -->
+  <div id="vocab-quiz-mode" style="display:none;">
+    <div class="card">
+      <div class="quiz-score" id="vq-score">Score: 0 / 0</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="vq-progress" style="width:0%"></div></div>
+      <br>
+      <div class="quiz-question">
+        <span class="quiz-jp" id="vq-jp"></span>
+        <span class="quiz-romaji" id="vq-romaji"></span>
+        <div style="font-size:0.8rem;color:var(--light);margin-top:4px;">Choose the English meaning:</div>
+      </div>
+      <div class="quiz-options" id="vq-options"></div>
+      <div class="quiz-feedback" id="vq-feedback"></div>
+      <div style="text-align:center;">
+        <button class="btn btn-primary btn-sm" id="vq-next" onclick="nextVocabQuiz()" style="display:none;">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING MODE -->
+  <div id="vocab-type-mode" style="display:none;">
+    <div class="card">
+      <div class="quiz-score" id="vt-score">Score: 0 / 0</div>
+      <div class="typing-prompt">
+        <div class="en-word" id="vt-en"></div>
+        <div class="hint" id="vt-hint"></div>
+      </div>
+      <input class="typing-input" id="vt-input" placeholder="type in romaji or Japanese..." onkeydown="if(event.key==='Enter')checkTyping()">
+      <div class="typing-answer" id="vt-answer"></div>
+      <div style="text-align:center;margin-top:14px;display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-primary btn-sm" onclick="checkTyping()">Check</button>
+        <button class="btn btn-outline btn-sm" onclick="nextTyping()">Skip →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST MODE -->
+  <div id="vocab-list-mode" style="display:none;">
+    <div class="vocab-grid" id="vocab-list-grid"></div>
+    <div id="number-charts" style="display:none;"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ GRAMMAR ═══════════════════════════ -->
+<div id="sec-grammar" class="section">
+  <div id="grammar-cards"></div>
+</div>
+
+<!-- ═══════════════════════════ PHRASES ═══════════════════════════ -->
+<div id="sec-phrases" class="section">
+  <div id="phrases-content"></div>
+</div>
+
+<!-- ═══════════════════════════ QUIZ MODE ═══════════════════════════ -->
+<div id="sec-quiz" class="section">
+  <div class="card">
+    <div class="card-title">Mixed Review — All Topics</div>
+    <div id="mixed-score-banner" class="score-banner" style="display:none;">
+      <div class="score-num" id="ms-num">0/0</div>
+      <div class="score-label">Session Score</div>
+    </div>
+    <div class="quiz-question">
+      <span class="quiz-jp" id="mq-jp"></span>
+      <span class="quiz-romaji" id="mq-romaji"></span>
+      <div id="mq-context" style="font-size:0.8rem;color:var(--light);margin-top:4px;"></div>
+    </div>
+    <div class="quiz-options" id="mq-options"></div>
+    <div class="quiz-feedback" id="mq-feedback"></div>
+    <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;">
+      <button class="btn btn-primary btn-sm" id="mq-next" onclick="nextMixedQuiz()" style="display:none;">Next →</button>
+      <button class="btn btn-outline btn-sm" onclick="startMixedQuiz()">🔄 Restart</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+
+const VOCAB = [
+  // ── GREETINGS ──
+  {jp:'おはよう',rom:'Ohayou',en:'Good morning (casual)',cat:'Greetings'},
+  {jp:'おはようございます',rom:'Ohayou gozaimasu',en:'Good morning (polite)',cat:'Greetings'},
+  {jp:'こんにちは',rom:'Konnichiwa',en:'Good afternoon',cat:'Greetings'},
+  {jp:'こんばんは',rom:'Konbanwa',en:'Good evening',cat:'Greetings'},
+  {jp:'さようなら',rom:'Sayounara',en:'Goodbye',cat:'Greetings'},
+  {jp:'おやすみなさい',rom:'Oyasumi nasai',en:'Good night',cat:'Greetings'},
+  {jp:'ありがとう',rom:'Arigatou',en:'Thank you',cat:'Greetings'},
+  {jp:'ありがとうございます',rom:'Arigatou gozaimasu',en:'Thank you (polite)',cat:'Greetings'},
+  {jp:'すみません',rom:'Sumimasen',en:'Excuse me / I\'m sorry',cat:'Greetings'},
+  {jp:'いいえ',rom:'Iie',en:'No / Not at all',cat:'Greetings'},
+  {jp:'はじめまして',rom:'Hajimemashite',en:'How do you do? (first meeting)',cat:'Greetings'},
+  {jp:'どうぞよろしく',rom:'Douzo yoroshiku',en:'Nice to meet you',cat:'Greetings'},
+  {jp:'いただきます',rom:'Itadakimasu',en:'Thanks for the meal (before eating)',cat:'Greetings'},
+  {jp:'ごちそうさまでした',rom:'Gochisousama deshita',en:'Thanks for the meal (after eating)',cat:'Greetings'},
+  {jp:'いってきます',rom:'Itte kimasu',en:'I\'ll go and come back',cat:'Greetings'},
+  {jp:'ただいま',rom:'Tadaima',en:'I\'m home',cat:'Greetings'},
+  {jp:'がんばって',rom:'Ganbatte',en:'Do your best!',cat:'Greetings'},
+  {jp:'またね',rom:'Mata ne',en:'See you again',cat:'Greetings'},
+  // ── PRONOUNS ──
+  {jp:'わたし',rom:'watashi',en:'I / me',cat:'Pronouns'},
+  {jp:'わたしたち',rom:'watashitachi',en:'we / us',cat:'Pronouns'},
+  {jp:'あなた',rom:'anata',en:'you',cat:'Pronouns'},
+  {jp:'かれ',rom:'kare',en:'he / him',cat:'Pronouns'},
+  {jp:'かのじょ',rom:'kanojo',en:'she / her',cat:'Pronouns'},
+  {jp:'かれら',rom:'karera',en:'they / them',cat:'Pronouns'},
+  // ── FAMILY ──
+  {jp:'おかあさん',rom:'okaasan',en:'mother (someone else\'s)',cat:'Family'},
+  {jp:'はは',rom:'haha',en:'mother (my own, formal)',cat:'Family'},
+  {jp:'おとうさん',rom:'otousan',en:'father (someone else\'s)',cat:'Family'},
+  {jp:'ちち',rom:'chichi',en:'father (my own, formal)',cat:'Family'},
+  {jp:'おねえさん',rom:'oneesan',en:'older sister',cat:'Family'},
+  {jp:'あね',rom:'ane',en:'older sister (my own)',cat:'Family'},
+  {jp:'いもうと',rom:'imouto',en:'younger sister',cat:'Family'},
+  {jp:'おにいさん',rom:'oniisan',en:'older brother',cat:'Family'},
+  {jp:'あに',rom:'ani',en:'older brother (my own)',cat:'Family'},
+  {jp:'おとうと',rom:'otouto',en:'younger brother',cat:'Family'},
+  {jp:'おばあさん',rom:'obaasan',en:'grandmother',cat:'Family'},
+  {jp:'おじいさん',rom:'ojiisan',en:'grandfather',cat:'Family'},
+  {jp:'きょうだい',rom:'kyoudai',en:'siblings',cat:'Family'},
+  // ── NUMBERS ──
+  {jp:'いち',rom:'ichi',en:'1',cat:'Numbers'},
+  {jp:'に',rom:'ni',en:'2',cat:'Numbers'},
+  {jp:'さん',rom:'san',en:'3',cat:'Numbers'},
+  {jp:'し・よん',rom:'shi / yon',en:'4',cat:'Numbers'},
+  {jp:'ご',rom:'go',en:'5',cat:'Numbers'},
+  {jp:'ろく',rom:'roku',en:'6',cat:'Numbers'},
+  {jp:'しち・なな',rom:'shichi / nana',en:'7',cat:'Numbers'},
+  {jp:'はち',rom:'hachi',en:'8',cat:'Numbers'},
+  {jp:'く・きゅう',rom:'ku / kyuu',en:'9',cat:'Numbers'},
+  {jp:'じゅう',rom:'juu',en:'10',cat:'Numbers'},
+  {jp:'ひゃく',rom:'hyaku',en:'100',cat:'Numbers'},
+  {jp:'せん',rom:'sen',en:'1,000',cat:'Numbers'},
+  {jp:'いちまん',rom:'ichiman',en:'10,000',cat:'Numbers'},
+  {jp:'ひとつ',rom:'hitotsu',en:'one thing',cat:'Numbers'},
+  {jp:'ふたつ',rom:'futatsu',en:'two things',cat:'Numbers'},
+  {jp:'みっつ',rom:'mittsu',en:'three things',cat:'Numbers'},
+  {jp:'ひとり',rom:'hitori',en:'one person',cat:'Numbers'},
+  {jp:'ふたり',rom:'futari',en:'two people',cat:'Numbers'},
+  // ── TIME ──
+  {jp:'いちじ',rom:'ichiji',en:'1 o\'clock',cat:'Time'},
+  {jp:'にじ',rom:'niji',en:'2 o\'clock',cat:'Time'},
+  {jp:'さんじ',rom:'sanji',en:'3 o\'clock',cat:'Time'},
+  {jp:'よじ',rom:'yoji',en:'4 o\'clock',cat:'Time'},
+  {jp:'ごじ',rom:'goji',en:'5 o\'clock',cat:'Time'},
+  {jp:'ろくじ',rom:'rokuji',en:'6 o\'clock',cat:'Time'},
+  {jp:'しちじ',rom:'shichiji',en:'7 o\'clock',cat:'Time'},
+  {jp:'はちじ',rom:'hachiji',en:'8 o\'clock',cat:'Time'},
+  {jp:'くじ',rom:'kuji',en:'9 o\'clock',cat:'Time'},
+  {jp:'じゅうじ',rom:'juuji',en:'10 o\'clock',cat:'Time'},
+  {jp:'じゅういちじ',rom:'juuichiji',en:'11 o\'clock',cat:'Time'},
+  {jp:'じゅうにじ',rom:'juuniji',en:'12 o\'clock',cat:'Time'},
+  {jp:'ごぜん',rom:'gozen',en:'AM / morning',cat:'Time'},
+  {jp:'ごご',rom:'gogo',en:'PM / afternoon',cat:'Time'},
+  {jp:'しょうご',rom:'shougo',en:'noon',cat:'Time'},
+  {jp:'はん',rom:'han',en:'half past',cat:'Time'},
+  {jp:'ふん・ぷん',rom:'fun / pun',en:'minute',cat:'Time'},
+  {jp:'なんじですか',rom:'nanji desu ka',en:'What time is it?',cat:'Time'},
+  {jp:'あさ',rom:'asa',en:'morning',cat:'Time'},
+  {jp:'ひる',rom:'hiru',en:'daytime / noon',cat:'Time'},
+  {jp:'ゆうがた',rom:'yuugata',en:'evening',cat:'Time'},
+  {jp:'よる',rom:'yoru',en:'night',cat:'Time'},
+  {jp:'きょう',rom:'kyou',en:'today',cat:'Time'},
+  {jp:'きのう',rom:'kinou',en:'yesterday',cat:'Time'},
+  {jp:'あした',rom:'ashita',en:'tomorrow',cat:'Time'},
+  // ── DAYS ──
+  {jp:'にちようび',rom:'nichiyoubi',en:'Sunday',cat:'Days'},
+  {jp:'げつようび',rom:'getsuyoubi',en:'Monday',cat:'Days'},
+  {jp:'かようび',rom:'kayoubi',en:'Tuesday',cat:'Days'},
+  {jp:'すいようび',rom:'suiyoubi',en:'Wednesday',cat:'Days'},
+  {jp:'もくようび',rom:'mokuyoubi',en:'Thursday',cat:'Days'},
+  {jp:'きんようび',rom:'kinyoubi',en:'Friday',cat:'Days'},
+  {jp:'どようび',rom:'doyoubi',en:'Saturday',cat:'Days'},
+  {jp:'なんようびですか',rom:'nan youbi desu ka',en:'What day is it?',cat:'Days'},
+  // ── SEASONS ──
+  {jp:'はる',rom:'haru',en:'spring',cat:'Seasons'},
+  {jp:'なつ',rom:'natsu',en:'summer',cat:'Seasons'},
+  {jp:'あき',rom:'aki',en:'autumn / fall',cat:'Seasons'},
+  {jp:'ふゆ',rom:'fuyu',en:'winter',cat:'Seasons'},
+  // ── JOBS ──
+  {jp:'がくせい',rom:'gakusei',en:'student',cat:'Jobs'},
+  {jp:'せんせい',rom:'sensei',en:'teacher',cat:'Jobs'},
+  {jp:'かいしゃいん',rom:'kaishain',en:'office / company worker',cat:'Jobs'},
+  {jp:'しゅふ',rom:'shufu',en:'housewife / househusband',cat:'Jobs'},
+  {jp:'しゃちょう',rom:'shachou',en:'company president / CEO',cat:'Jobs'},
+  {jp:'いしゃ',rom:'isha',en:'medical doctor',cat:'Jobs'},
+  {jp:'はかせ',rom:'hakase',en:'PhD / lab doctor',cat:'Jobs'},
+  {jp:'うんてんしゅ',rom:'untenshu',en:'driver',cat:'Jobs'},
+  {jp:'がか',rom:'gaka',en:'painter / artist',cat:'Jobs'},
+  {jp:'かしゅ',rom:'kashu',en:'singer',cat:'Jobs'},
+  {jp:'だいく',rom:'daiku',en:'carpenter',cat:'Jobs'},
+  {jp:'たんてい',rom:'tantei',en:'detective',cat:'Jobs'},
+  {jp:'ラッパー',rom:'rappaa',en:'rapper',cat:'Jobs'},
+  {jp:'ダンサー',rom:'dansaa',en:'dancer',cat:'Jobs'},
+  // ── COUNTRIES ──
+  {jp:'にほん',rom:'Nihon',en:'Japan',cat:'Countries'},
+  {jp:'アメリカ',rom:'Amerika',en:'America / USA',cat:'Countries'},
+  {jp:'イギリス',rom:'Igirisu',en:'United Kingdom',cat:'Countries'},
+  {jp:'インド',rom:'Indo',en:'India',cat:'Countries'},
+  {jp:'オーストラリア',rom:'Oosutoraria',en:'Australia',cat:'Countries'},
+  {jp:'ちゅうごく',rom:'Chuugoku',en:'China',cat:'Countries'},
+  {jp:'かんこく',rom:'Kankoku',en:'South Korea',cat:'Countries'},
+  {jp:'ドイツ',rom:'Doitsu',en:'Germany',cat:'Countries'},
+  {jp:'にほんじん',rom:'nihonjin',en:'Japanese person',cat:'Countries'},
+  {jp:'アメリカじん',rom:'Amerika-jin',en:'American person',cat:'Countries'},
+  // ── NOUNS ──
+  {jp:'いえ',rom:'ie',en:'house / home',cat:'Nouns'},
+  {jp:'いす',rom:'isu',en:'chair',cat:'Nouns'},
+  {jp:'かさ',rom:'kasa',en:'umbrella',cat:'Nouns'},
+  {jp:'くうこう',rom:'kuukou',en:'airport',cat:'Nouns'},
+  {jp:'ほん',rom:'hon',en:'book',cat:'Nouns'},
+  {jp:'ペン',rom:'pen',en:'pen',cat:'Nouns'},
+  {jp:'ノート',rom:'nooto',en:'notebook',cat:'Nouns'},
+  {jp:'かばん',rom:'kaban',en:'bag',cat:'Nouns'},
+  {jp:'さいふ',rom:'saifu',en:'wallet',cat:'Nouns'},
+  {jp:'くつ',rom:'kutsu',en:'shoes',cat:'Nouns'},
+  {jp:'とけい',rom:'tokei',en:'watch / clock',cat:'Nouns'},
+  {jp:'スマホ',rom:'sumaho',en:'smartphone',cat:'Nouns'},
+  {jp:'じてんしゃ',rom:'jitensha',en:'bicycle',cat:'Nouns'},
+  {jp:'でんしゃ',rom:'densha',en:'train',cat:'Nouns'},
+  {jp:'ひこうき',rom:'hikouki',en:'airplane',cat:'Nouns'},
+  {jp:'くるま',rom:'kuruma',en:'car',cat:'Nouns'},
+  {jp:'スーパー',rom:'suupaa',en:'supermarket',cat:'Nouns'},
+  {jp:'レストラン',rom:'resutoran',en:'restaurant',cat:'Nouns'},
+  {jp:'ともだち',rom:'tomodachi',en:'friend(s)',cat:'Nouns'},
+  {jp:'ねこ',rom:'neko',en:'cat',cat:'Nouns'},
+  {jp:'いぬ',rom:'inu',en:'dog',cat:'Nouns'},
+  {jp:'しごと',rom:'shigoto',en:'work / job',cat:'Nouns'},
+  {jp:'しゅくだい',rom:'shukudai',en:'homework',cat:'Nouns'},
+  {jp:'みず',rom:'mizu',en:'water',cat:'Nouns'},
+  {jp:'コーヒー',rom:'koohii',en:'coffee',cat:'Nouns'},
+  {jp:'にほんご',rom:'nihongo',en:'Japanese (language)',cat:'Nouns'},
+  {jp:'えいご',rom:'eigo',en:'English (language)',cat:'Nouns'},
+  {jp:'ラーメン',rom:'raamen',en:'ramen',cat:'Nouns'},
+  {jp:'おかし',rom:'okashi',en:'sweets / snacks',cat:'Nouns'},
+  {jp:'さけ',rom:'sake',en:'rice wine / sake',cat:'Nouns'},
+  {jp:'せかい',rom:'sekai',en:'world',cat:'Nouns'},
+  {jp:'てんき',rom:'tenki',en:'weather',cat:'Nouns'},
+  {jp:'りょこう',rom:'ryokou',en:'travel / trip',cat:'Nouns'},
+  {jp:'えいが',rom:'eiga',en:'movie / film',cat:'Nouns'},
+  {jp:'おんがく',rom:'ongaku',en:'music',cat:'Nouns'},
+  // ── LOCATION ──
+  {jp:'ここ',rom:'koko',en:'here',cat:'Location'},
+  {jp:'そこ',rom:'soko',en:'there (near you)',cat:'Location'},
+  {jp:'あそこ',rom:'asoko',en:'over there',cat:'Location'},
+  {jp:'どこ',rom:'doko',en:'where?',cat:'Location'},
+  // ── VERBS ──
+  {jp:'いく',rom:'iku',en:'to go',cat:'Verbs'},
+  {jp:'くる',rom:'kuru',en:'to come',cat:'Verbs'},
+  {jp:'かえる',rom:'kaeru',en:'to return home',cat:'Verbs'},
+  {jp:'みる',rom:'miru',en:'to see / watch',cat:'Verbs'},
+  {jp:'きく',rom:'kiku',en:'to listen / hear',cat:'Verbs'},
+  {jp:'たべる',rom:'taberu',en:'to eat',cat:'Verbs'},
+  {jp:'のむ',rom:'nomu',en:'to drink',cat:'Verbs'},
+  {jp:'よむ',rom:'yomu',en:'to read',cat:'Verbs'},
+  {jp:'はなす',rom:'hanasu',en:'to speak / talk',cat:'Verbs'},
+  {jp:'する',rom:'suru',en:'to do',cat:'Verbs'},
+  {jp:'べんきょうする',rom:'benkyou suru',en:'to study',cat:'Verbs'},
+  {jp:'おきる',rom:'okiru',en:'to wake up',cat:'Verbs'},
+  {jp:'ねる',rom:'neru',en:'to sleep / go to bed',cat:'Verbs'},
+  {jp:'あう',rom:'au',en:'to meet',cat:'Verbs'},
+  {jp:'はじめる',rom:'hajimeru',en:'to start / begin',cat:'Verbs'},
+  {jp:'おわる',rom:'owaru',en:'to finish / end',cat:'Verbs'},
+  {jp:'かかる',rom:'kakaru',en:'to take (time)',cat:'Verbs'},
+  {jp:'りょうりする',rom:'ryouri suru',en:'to cook',cat:'Verbs'},
+  {jp:'つかう',rom:'tsukau',en:'to use',cat:'Verbs'},
+  {jp:'およぐ',rom:'oyogu',en:'to swim',cat:'Verbs'},
+  {jp:'でかける',rom:'dekakeru',en:'to go out',cat:'Verbs'},
+  {jp:'のる',rom:'noru',en:'to ride / board',cat:'Verbs'},
+  {jp:'あるく',rom:'aruku',en:'to walk',cat:'Verbs'},
+  {jp:'つくる',rom:'tsukuru',en:'to make',cat:'Verbs'},
+  {jp:'うたう',rom:'utau',en:'to sing',cat:'Verbs'},
+  // ── I-ADJECTIVES ──
+  {jp:'いい',rom:'ii',en:'good',cat:'い-Adjectives'},
+  {jp:'あつい',rom:'atsui',en:'hot',cat:'い-Adjectives'},
+  {jp:'さむい',rom:'samui',en:'cold',cat:'い-Adjectives'},
+  {jp:'おおきい',rom:'ookii',en:'big / large',cat:'い-Adjectives'},
+  {jp:'ちいさい',rom:'chiisai',en:'small / little',cat:'い-Adjectives'},
+  {jp:'たかい',rom:'takai',en:'expensive / tall',cat:'い-Adjectives'},
+  {jp:'やすい',rom:'yasui',en:'cheap / inexpensive',cat:'い-Adjectives'},
+  {jp:'あたらしい',rom:'atarashii',en:'new',cat:'い-Adjectives'},
+  {jp:'ふるい',rom:'furui',en:'old',cat:'い-Adjectives'},
+  {jp:'たのしい',rom:'tanoshii',en:'fun',cat:'い-Adjectives'},
+  {jp:'むずかしい',rom:'muzukashii',en:'difficult / hard',cat:'い-Adjectives'},
+  {jp:'やさしい',rom:'yasashii',en:'easy / kind',cat:'い-Adjectives'},
+  {jp:'おもしろい',rom:'omoshiroi',en:'interesting',cat:'い-Adjectives'},
+  {jp:'つまらない',rom:'tsumaranai',en:'boring',cat:'い-Adjectives'},
+  {jp:'こわい',rom:'kowai',en:'scary',cat:'い-Adjectives'},
+  {jp:'かっこいい',rom:'kakkoii',en:'cool / handsome',cat:'い-Adjectives'},
+  {jp:'かわいい',rom:'kawaii',en:'cute',cat:'い-Adjectives'},
+  {jp:'おもい',rom:'omoi',en:'heavy',cat:'い-Adjectives'},
+  {jp:'かるい',rom:'karui',en:'light (weight)',cat:'い-Adjectives'},
+  {jp:'からい',rom:'karai',en:'spicy',cat:'い-Adjectives'},
+  {jp:'あまい',rom:'amai',en:'sweet',cat:'い-Adjectives'},
+  {jp:'いそがしい',rom:'isogashii',en:'busy',cat:'い-Adjectives'},
+  // ── NA-ADJECTIVES ──
+  {jp:'すき',rom:'suki',en:'like / fond of',cat:'な-Adjectives'},
+  {jp:'きらい',rom:'kirai',en:'dislike',cat:'な-Adjectives'},
+  {jp:'だいすき',rom:'daisuki',en:'love / very fond of',cat:'な-Adjectives'},
+  {jp:'きれい',rom:'kirei',en:'beautiful / clean',cat:'な-Adjectives'},
+  {jp:'げんき',rom:'genki',en:'healthy / energetic',cat:'な-Adjectives'},
+  {jp:'しずか',rom:'shizuka',en:'quiet',cat:'な-Adjectives'},
+  {jp:'にぎやか',rom:'nigiyaka',en:'lively / bustling',cat:'な-Adjectives'},
+  {jp:'ひま',rom:'hima',en:'free (time) / not busy',cat:'な-Adjectives'},
+  {jp:'かんたん',rom:'kantan',en:'easy / simple',cat:'な-Adjectives'},
+  {jp:'たいへん',rom:'taihen',en:'hard / a big deal',cat:'な-Adjectives'},
+  {jp:'ゆうめい',rom:'yuumei',en:'famous',cat:'な-Adjectives'},
+];
+
+const GRAMMAR = [
+  // ─── 1. Core sentence pattern ───
+  {
+    title:'X は Y です — X is Y',
+    tag:'Core Pattern',
+    pattern:{jp:'[Topic] は [Noun / Adjective] です。',en:'"wa" marks the topic; "desu" = to be'},
+    note:'"は" (written ha, read wa) marks the topic of the sentence. "です" is the polite copula, similar to "to be" in English. Both nouns and adjectives come before です. The topic can be dropped when obvious from context.',
+    examples:[
+      {jp:'わたしはアマンダです。',rom:'Watashi wa Amanda desu.',en:'I am Amanda.'},
+      {jp:'（わたしは）アメリカじんです。どうぞよろしく。',rom:'(Watashi wa) Amerika-jin desu. Douzo yoroshiku.',en:'(I am) American. Nice to meet you.'},
+      {jp:'かれはがくせいです。',rom:'Kare wa gakusei desu.',en:'He is a student.'},
+      {jp:'かのじょはティナです。',rom:'Kanojo wa Tina desu.',en:'She is Tina.'},
+      {jp:'かれらはジョンとティナです。',rom:'Karera wa Jon to Tina desu.',en:'They are John and Tina.'},
+      {jp:'きょうはさむいです。',rom:'Kyou wa samui desu.',en:'It is cold today.'},
+      {jp:'わたしのたんじょうびはあしたです。',rom:'Watashi no tanjoubi wa ashita desu.',en:'My birthday is tomorrow.'},
+    ]
+  },
+  // ─── 2. Negation ───
+  {
+    title:'Negation — じゃないです / ではありません',
+    tag:'Negation',
+    pattern:{jp:'[Topic] は [Noun] じゃないです。\n[Topic] は [Noun] ではありません。 (formal)',en:'Three styles, all mean "is not"'},
+    note:'"じゃ" is a contraction of "では". All three forms are correct — choose based on formality.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Style</th><th>Form</th><th>When to use</th></tr></thead><tbody>
+      <tr><td>Casual</td><td><span class="jp">〜じゃないです</span></td><td>Everyday conversation</td></tr>
+      <tr><td>Conservative</td><td><span class="jp">〜じゃありません</span></td><td>Polite speech</td></tr>
+      <tr><td>Formal/Written</td><td><span class="jp">〜ではありません</span></td><td>Formal situations, writing</td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'わたしはがくせいじゃないです。',rom:'Watashi wa gakusei ja nai desu.',en:'I am not a student.'},
+      {jp:'わたしはランナーじゃないです。🏃',rom:'Watashi wa rannaa ja nai desu.',en:'I am not a runner.'},
+      {jp:'これはにくじゃないです。',rom:'Kore wa niku ja nai desu.',en:'This is not meat.'},
+      {jp:'とんかつはさかなじゃないですよ。',rom:'Tonkatsu wa sakana ja nai desu yo.',en:'"Tonkatsu" is not fish. (I\'m telling you!)'},
+      {jp:'きょうはきんようびじゃないです。',rom:'Kyou wa kinyoubi ja nai desu.',en:'Today is not Friday.'},
+      {jp:'このスマホはわたしのじゃないです。',rom:'Kono sumaho wa watashi no ja nai desu.',en:'This smartphone is not mine.'},
+      {jp:'にほんではきょうはどようびじゃありません。',rom:'Nihon de wa kyou wa doyoubi ja arimasen.',en:'In Japan, today is not Saturday.'},
+    ]
+  },
+  // ─── 3. Questions ───
+  {
+    title:'Questions with か / Question words',
+    tag:'Questions',
+    pattern:{jp:'[Statement] か？　　なに・どこ・なん・いつ・だれ',en:'Add か to make a yes/no question; use question words for open questions'},
+    note:'Japanese questions keep the same word order — just add か at the end. Question words (なに what, どこ where, なん which/what, いつ when, だれ who) slot into the sentence naturally.',
+    examples:[
+      {jp:'がくせいですか。',rom:'Gakusei desu ka.',en:'Are you a student?'},
+      {jp:'りゅうがくせいですか。',rom:'Ryuugakusei desu ka.',en:'Are you an international student?'},
+      {jp:'なんじですか。',rom:'Nanji desu ka.',en:'What time is it?'},
+      {jp:'なんようびですか。',rom:'Nan youbi desu ka.',en:'What day is it?'},
+      {jp:'これはいくらですか。',rom:'Kore wa ikura desu ka.',en:'How much is this?'},
+      {jp:'チームラボはいつあきますか。',rom:'Chiimu Rabo wa itsu akimasu ka.',en:'When does teamLab open?'},
+      {jp:'ともだちはどこにいますか。',rom:'Tomodachi wa doko ni imasu ka.',en:'Where is your friend?'},
+      {jp:'なんねんせいですか。',rom:'Nan-nensei desu ka.',en:'What year are you in school?'},
+    ]
+  },
+  // ─── 4. の ───
+  {
+    title:'の — Possessive / Linking Nouns',
+    tag:'Particle',
+    pattern:{jp:'[A] の [B]　→　B of A / A\'s B',en:'"no" connects two nouns'},
+    note:'の works like English apostrophe-s for possession, but also links any two nouns: "にほんごのクラス" = Japanese (language\'s) class. わたし＋の → わたしの (my). かれ＋の → かれの (his).',
+    examples:[
+      {jp:'わたしのなまえはアマンダです。',rom:'Watashi no namae wa Amanda desu.',en:'My name is Amanda.'},
+      {jp:'かれのしごとはかいしゃいんです。',rom:'Kare no shigoto wa kaishain desu.',en:'His job is office worker.'},
+      {jp:'にほんごのクラス',rom:'nihongo no kurasu',en:'Japanese (language) class'},
+      {jp:'メイちゃんはわたしのあねです。',rom:'Mei-chan wa watashi no ane desu.',en:'Mei-chan is my sister.'},
+      {jp:'はははかたのおばあちゃん',rom:'hahakawa no obaachan',en:'grandma on mom\'s side'},
+      {jp:'かれのなまえはフィリップです。',rom:'Kare no namae wa Firrippu desu.',en:'His name is Phillip.'},
+    ]
+  },
+  // ─── 5. あります vs います ───
+  {
+    title:'あります vs います — There is / I have',
+    tag:'Core Verbs',
+    pattern:{jp:'[Place] に [Thing が] あります\n[Place] に [Person が] います',en:'ある = non-living  ／  いる = living / moving'},
+    note:'Use あります for objects, events, and things you own (non-living). Use います for people, animals, and moving things. Also: あります can mean "there will be an event." Negative: ありません / いません (also: ないです / いないです).',
+    tableHtml:`<table class="conj-table"><thead><tr><th></th><th>あります (ある)</th><th>います (いる)</th></tr></thead><tbody>
+      <tr><td>Use for</td><td>Objects, events, things you own</td><td>People, animals, moving things</td></tr>
+      <tr><td>Affirmative</td><td><span class="jp">あります</span><span class="rom">arimasu</span></td><td><span class="jp">います</span><span class="rom">imasu</span></td></tr>
+      <tr><td>Negative</td><td><span class="jp">ありません / ないです</span><span class="rom">arimasen / nai desu</span></td><td><span class="jp">いません / いないです</span><span class="rom">imasen / inai desu</span></td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'あそこにマクドナルドがあります。',rom:'Asoko ni Makudonarudo ga arimasu.',en:'There\'s a McDonald\'s over there.'},
+      {jp:'ここにぬいぐるみがあります。',rom:'Koko ni nuigurumi ga arimasu.',en:'There\'s a stuffed animal here.'},
+      {jp:'じかんがありますか。',rom:'Jikan ga arimasu ka.',en:'Do you have time?'},
+      {jp:'あしたはしごとがありません。',rom:'Ashita wa shigoto ga arimasen.',en:'I don\'t have work tomorrow.'},
+      {jp:'かようびにテストがあります。',rom:'Kayoubi ni tesuto ga arimasu.',en:'There will be a test on Tuesday.'},
+      {jp:'いえにねこがいます。',rom:'Ie ni neko ga imasu.',en:'There is a cat at home.'},
+      {jp:'あそこにミッキーマウスがいます。',rom:'Asoko ni Mikkii Mausu ga imasu.',en:'Mickey Mouse is over there.'},
+      {jp:'ともだちがいます。',rom:'Tomodachi ga imasu.',en:'I have a friend.'},
+      {jp:'さかながあります（たべもの）/ さかながいます（いきている）',rom:'sakana ga arimasu (food) / sakana ga imasu (alive)',en:'fish — as food vs. a living fish 🐟'},
+    ]
+  },
+  // ─── 6. Verb groups ───
+  {
+    title:'Verb Groups — Ru-verbs, U-verbs, Irregular',
+    tag:'Verb Conjugation',
+    pattern:{jp:'グループ1 (U-verbs)　グループ2 (Ru-verbs)　グループ3 (Irregular)',en:'Three groups conjugate differently'},
+    note:'Ru-verbs (Group 2): base ends in e or i + ru → just swap ru for masu. U-verbs (Group 1): base ends in consonant + u → replace u with imasu. Note: 帰る looks like a ru-verb but is actually a u-verb! Irregular: only する and くる.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Group</th><th>Dictionary</th><th>Affirmative</th><th>Negative</th></tr></thead><tbody>
+      <tr><td rowspan="4">Ru-verbs<br>(Group 2)</td><td><span class="jp">食べる</span><span class="rom">taberu</span></td><td><span class="jp aff">食べます</span><span class="rom">tabemasu</span></td><td><span class="jp neg">食べません</span><span class="rom">tabemasen</span></td></tr>
+      <tr><td><span class="jp">寝る</span><span class="rom">neru</span></td><td><span class="jp aff">寝ます</span><span class="rom">nemasu</span></td><td><span class="jp neg">寝ません</span><span class="rom">nemasen</span></td></tr>
+      <tr><td><span class="jp">起きる</span><span class="rom">okiru</span></td><td><span class="jp aff">起きます</span><span class="rom">okimasu</span></td><td><span class="jp neg">起きません</span><span class="rom">okimasen</span></td></tr>
+      <tr><td><span class="jp">見る</span><span class="rom">miru</span></td><td><span class="jp aff">見ます</span><span class="rom">mimasu</span></td><td><span class="jp neg">見ません</span><span class="rom">mimasen</span></td></tr>
+      <tr><td rowspan="5">U-verbs<br>(Group 1)</td><td><span class="jp">飲む</span><span class="rom">nomu</span></td><td><span class="jp aff">飲みます</span><span class="rom">nomimasu</span></td><td><span class="jp neg">飲みません</span><span class="rom">nomimasen</span></td></tr>
+      <tr><td><span class="jp">読む</span><span class="rom">yomu</span></td><td><span class="jp aff">読みます</span><span class="rom">yomimasu</span></td><td><span class="jp neg">読みません</span><span class="rom">yomimasen</span></td></tr>
+      <tr><td><span class="jp">話す</span><span class="rom">hanasu</span></td><td><span class="jp aff">話します</span><span class="rom">hanashimasu</span></td><td><span class="jp neg">話しません</span><span class="rom">hanashimasen</span></td></tr>
+      <tr><td><span class="jp">聞く</span><span class="rom">kiku</span></td><td><span class="jp aff">聞きます</span><span class="rom">kikimasu</span></td><td><span class="jp neg">聞きません</span><span class="rom">kikimasen</span></td></tr>
+      <tr><td><span class="jp">帰る ⚠️</span><span class="rom">kaeru (u-verb!)</span></td><td><span class="jp aff">帰ります</span><span class="rom">kaerimasu</span></td><td><span class="jp neg">帰りません</span><span class="rom">kaerimasen</span></td></tr>
+      <tr><td rowspan="3">Irregular<br>(Group 3)</td><td><span class="jp">する</span><span class="rom">suru</span></td><td><span class="jp aff">します</span><span class="rom">shimasu</span></td><td><span class="jp neg">しません</span><span class="rom">shimasen</span></td></tr>
+      <tr><td><span class="jp">勉強する</span><span class="rom">benkyousuru</span></td><td><span class="jp aff">勉強します</span><span class="rom">benkyoushimasu</span></td><td><span class="jp neg">勉強しません</span><span class="rom">benkyoushimasen</span></td></tr>
+      <tr><td><span class="jp">くる</span><span class="rom">kuru</span></td><td><span class="jp aff">きます</span><span class="rom">kimasu</span></td><td><span class="jp neg">きません</span><span class="rom">kimasen</span></td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'いざかやにいきます。',rom:'Izakaya ni ikimasu.',en:'I go to an izakaya.'},
+      {jp:'いざかやでビールをのみます。',rom:'Izakaya de biiru wo nomimasu.',en:'I drink beer at the izakaya.'},
+      {jp:'さいさんアニメをみませんか。',rom:'Sai-san, anime wo mimasen ka.',en:'Sai-san, shall we watch anime?'},
+    ]
+  },
+  // ─── 7. Past tense ───
+  {
+    title:'Past Tense — ました / ませんでした',
+    tag:'Verb Conjugation',
+    pattern:{jp:'[verb-stem] ました　→　[verb-stem] ませんでした',en:'Polite past affirmative → negative'},
+    note:'Replace ます→ました for past. Replace ません→ませんでした for past negative. Casual past: replace う-ending with った/んだ (introduced later).',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Tense</th><th>Affirmative</th><th>Negative</th></tr></thead><tbody>
+      <tr><td>Present</td><td><span class="jp aff">〜ます</span><span class="rom">~masu</span></td><td><span class="jp neg">〜ません</span><span class="rom">~masen</span></td></tr>
+      <tr><td>Past</td><td><span class="jp aff">〜ました</span><span class="rom">~mashita</span></td><td><span class="jp neg">〜ませんでした</span><span class="rom">~masen deshita</span></td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'きのうはごぜん10じはんにおきました。',rom:'Kinou wa gozen juuji han ni okimashita.',en:'Yesterday I woke up at 10:30 AM.'},
+      {jp:'ごご12じにともだちとブリュワリーにいきました。',rom:'Gogo juuniji ni tomodachi to buryuwarii ni ikimashita.',en:'At noon I went to the brewery with friends.'},
+      {jp:'ゆうしょくにともだちとやきとりをたべました。',rom:'Yuushoku ni tomodachi to yakitori wo tabemashita.',en:'For dinner I ate yakitori with friends.'},
+      {jp:'アニメをみませんでした。',rom:'Anime wo mimasen deshita.',en:'I didn\'t watch anime.'},
+      {jp:'きょうはしごとをしました。',rom:'Kyou wa shigoto wo shimashita.',en:'I worked today.'},
+      {jp:'わたしはたかおかからとやままでうんてんしました。',rom:'Watashi wa Takaoka kara Toyama made unten shimashita.',en:'I drove from Takaoka to Toyama.'},
+      {jp:'11じからはじめました。2じにおわりました。',rom:'Juuichiji kara hajimemashita. Niji ni owarimashita.',en:'I started at 11am. I finished at 2pm.'},
+    ]
+  },
+  // ─── 8. Particles ───
+  {
+    title:'Particles: を, で, に, へ, から, まで',
+    tag:'Particles',
+    pattern:{jp:'を　で　に　へ　から　まで',en:'Six essential particles for verbs and location'},
+    note:'"を" marks the direct object. "で" marks where the action happens. "に / へ" mark direction of movement (に also marks time). "から" = from. "まで" = until/to.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Particle</th><th>Meaning</th><th>Example</th></tr></thead><tbody>
+      <tr><td><span class="jp">を</span> wo</td><td>Direct object</td><td><span class="jp">コーヒーをのみます</span><br><span class="rom">koohii wo nomimasu — drink coffee</span></td></tr>
+      <tr><td><span class="jp">で</span> de</td><td>Place of action</td><td><span class="jp">としょかんでよみます</span><br><span class="rom">toshokan de yomimasu — read in the library</span></td></tr>
+      <tr><td><span class="jp">に</span> ni</td><td>Direction / goal / time</td><td><span class="jp">にほんにいきます / ８じにおきます</span><br><span class="rom">go to Japan / wake up at 8</span></td></tr>
+      <tr><td><span class="jp">へ</span> e</td><td>Direction (= に for movement)</td><td><span class="jp">うちへかえります</span><br><span class="rom">kaerimasen — return home</span></td></tr>
+      <tr><td><span class="jp">から</span> kara</td><td>From</td><td><span class="jp">９じからはじめます</span><br><span class="rom">goji kara — from 9 o'clock</span></td></tr>
+      <tr><td><span class="jp">まで</span> made</td><td>Until / to</td><td><span class="jp">７じまでおわりません</span><br><span class="rom">shichiji made — until 7 o'clock</span></td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'ごごごじからごごしちじまでTikTokをみました。',rom:'Gogo goji kara gogo shichiji made TikTok wo mimashita.',en:'I watched TikTok from 5 PM to 7 PM.'},
+      {jp:'かなざわへでんしゃにのりました。',rom:'Kanazawa e densha ni norimashita.',en:'I rode the train toward Kanazawa.'},
+      {jp:'スーパーへかいものにいく。',rom:'Suupaa e kaimono ni iku.',en:'I go shopping to the supermarket.'},
+      {jp:'とやまからじっかまで5じかんぐらいかかりました。',rom:'Toyama kara jikka made gojikan gurai kakarimashita.',en:'It took about 5 hours from Toyama to my hometown.'},
+    ]
+  },
+  // ─── 9. い-Adjectives (EXPANDED) ───
+  {
+    title:'い-Adjectives — All 4 Forms',
+    tag:'Adjectives',
+    pattern:{jp:'現在＋: [adj]です　　現在−: [adj→く]ないです\n過去＋: [adj→]かったです　過去−: [adj→く]なかったです',en:'Remove the い, then add the ending'},
+    note:'い-adjectives directly precede nouns without any extra word (e.g. さむいふゆ = cold winter). In negative and past forms, drop the final い before adding the ending. ⚠️ Exception: いい (good) becomes よい/よかった in conjugation — never いかった!',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Form</th><th>Affirmative</th><th>Negative</th></tr></thead><tbody>
+      <tr><td>Present</td><td><span class="jp aff">さむいです</span><span class="rom">samui desu — It is cold</span></td><td><span class="jp neg">さむくないです</span><span class="rom">samuku nai desu — It is not cold</span></td></tr>
+      <tr><td>Past</td><td><span class="jp aff">さむかったです</span><span class="rom">samukatta desu — It was cold</span></td><td><span class="jp neg">さむくなかったです</span><span class="rom">samuku nakatta desu — It was not cold</span></td></tr>
+      <tr><td>⚠️ いい (good)</td><td><span class="jp aff">よかったです</span><span class="rom">yokatta desu — It was good</span></td><td><span class="jp neg">よくなかったです</span><span class="rom">yoku nakatta desu — It was not good</span></td></tr>
+    </tbody></table>`,
+    adjGrid:[
+      {jp:'やすい',rom:'yasui',en:'cheap / inexpensive'},
+      {jp:'あたらしい',rom:'atarashii',en:'new'},
+      {jp:'ふるい',rom:'furui',en:'old'},
+      {jp:'あつい',rom:'atsui',en:'hot'},
+      {jp:'さむい',rom:'samui',en:'cold'},
+      {jp:'おおきい',rom:'ookii',en:'big / large'},
+      {jp:'ちいさい',rom:'chiisai',en:'small'},
+      {jp:'たのしい',rom:'tanoshii',en:'fun'},
+      {jp:'おもしろい',rom:'omoshiroi',en:'interesting'},
+      {jp:'つまらない',rom:'tsumaranai',en:'boring'},
+      {jp:'むずかしい',rom:'muzukashii',en:'difficult'},
+      {jp:'やさしい',rom:'yasashii',en:'easy / kind'},
+      {jp:'こわい',rom:'kowai',en:'scary'},
+      {jp:'いい',rom:'ii',en:'good ⚠️ irregular'},
+      {jp:'かっこいい',rom:'kakkoii',en:'cool / handsome'},
+      {jp:'いそがしい',rom:'isogashii',en:'busy'},
+      {jp:'たかい',rom:'takai',en:'expensive / tall'},
+      {jp:'かわいい',rom:'kawaii',en:'cute'},
+      {jp:'おもい',rom:'omoi',en:'heavy'},
+      {jp:'からい',rom:'karai',en:'spicy'},
+    ],
+    examples:[
+      {jp:'このもんだいはむずかしいです。',rom:'Kono mondai wa muzukashii desu.',en:'This problem is difficult.'},
+      {jp:'このもんだいはむずかしくないです。',rom:'Kono mondai wa muzukashiku nai desu.',en:'This problem is not difficult.'},
+      {jp:'このもんだいはむずかしかったです。',rom:'Kono mondai wa muzukashikatta desu.',en:'This problem was difficult.'},
+      {jp:'このもんだいはむずかしくなかったです。',rom:'Kono mondai wa muzukashiku nakatta desu.',en:'This problem was not difficult.'},
+      {jp:'テキサスはあつかったですか。',rom:'Tekisasu wa atsukatta desu ka.',en:'Was Texas hot?'},
+      {jp:'テキサスはさむくなかったです。',rom:'Tekisasu wa samuku nakatta desu.',en:'Texas was not cold.'},
+      {jp:'たかいとけい → このとけいはたかいです。',rom:'takai tokei → Kono tokei wa takai desu.',en:'expensive watch → This watch is expensive.'},
+      {jp:'このとけいはたかくないです。',rom:'Kono tokei wa takaku nai desu.',en:'This watch is not expensive.'},
+      {jp:'あたらしいほん → このほんはあたらしいです。',rom:'atarashii hon → Kono hon wa atarashii desu.',en:'new book → This book is new.'},
+      {jp:'このほんはあたらしくないです。',rom:'Kono hon wa atarashiku nai desu.',en:'This book is not new.'},
+      {jp:'ふるいほん → このほんはふるいです。',rom:'furui hon → Kono hon wa furui desu.',en:'old book → This book is old.'},
+      {jp:'からいラーメン → このラーメンはからいです。',rom:'karai raamen → Kono raamen wa karai desu.',en:'spicy ramen → This ramen is spicy.'},
+      {jp:'おおきいかばん → かばんはおおきくないです。',rom:'ookii kaban → Kaban wa ookiku nai desu.',en:'big bag → The bag is not big.'},
+      {jp:'あついなつ → なつはあついです。はる/あきはあつくないです。',rom:'atsui natsu → Natsu wa atsui desu. Haru/aki wa atsuku nai desu.',en:'hot summer → Summer is hot. Spring/fall are not hot.'},
+      {jp:'さむいふゆ → ふゆはさむいです。',rom:'samui fuyu → Fuyu wa samui desu.',en:'cold winter → Winter is cold.'},
+      {jp:'あおいスマホ / しろいペン / くろいマウス',rom:'aoi sumaho / shiroi pen / kuroi mausu',en:'blue smartphone / white pen / black mouse (color + noun)'},
+      {jp:'ねむいひと / やわらかいパン',rom:'nemui hito / yawarakai pan',en:'sleepy person / soft bread'},
+      {jp:'おおきいくま / ちいさいねずみ',rom:'ookii kuma / chiisai nezumi',en:'big bear / small mouse'},
+      {jp:'このテストはむずかしくなかったです。ぜんぜんむずかしくなかったです。',rom:'Kono tesuto wa muzukashiku nakatta desu. Zenzen muzukashiku nakatta desu.',en:'This test was not difficult. It was not difficult at all.'},
+    ]
+  },
+  // ─── 10. な-Adjectives (EXPANDED) ───
+  {
+    title:'な-Adjectives — All 4 Forms',
+    tag:'Adjectives',
+    pattern:{jp:'現在＋: [adj]です　　現在−: [adj]じゃないです\n過去＋: [adj]でした　過去−: [adj]じゃなかったです',en:'な-adjectives conjugate like nouns'},
+    note:'な-adjectives work just like nouns in conjugation. To use them BEFORE a noun, add な: きれいな + ひと = きれいなひと (a beautiful person). In casual speech, the plain form ends in だ: きれいだ. ⚠️ Do NOT use い-adjective rules on な-adjectives!',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Form</th><th>Affirmative</th><th>Negative</th></tr></thead><tbody>
+      <tr><td>Present</td><td><span class="jp aff">げんきです</span><span class="rom">genki desu — is healthy</span></td><td><span class="jp neg">げんきじゃないです</span><span class="rom">genki ja nai desu — is not healthy</span></td></tr>
+      <tr><td>Past</td><td><span class="jp aff">げんきでした</span><span class="rom">genki deshita — was healthy</span></td><td><span class="jp neg">げんきじゃなかったです</span><span class="rom">genki ja nakatta desu — was not healthy</span></td></tr>
+      <tr><td>Before a noun</td><td><span class="jp">げんきな + ひと</span><span class="rom">genki na + hito = healthy person</span></td><td colspan="1" style="color:var(--light);font-size:0.8rem;">Add な between adjective and noun</td></tr>
+      <tr><td>Casual / plain</td><td><span class="jp">げんきだ</span><span class="rom">genki da</span></td><td><span class="jp">げんきじゃない</span><span class="rom">genki ja nai</span></td></tr>
+    </tbody></table>`,
+    adjGrid:[
+      {jp:'すき（な）',rom:'suki (na)',en:'like / fond of ～が',na:true},
+      {jp:'きらい（な）',rom:'kirai (na)',en:'dislike ～が',na:true},
+      {jp:'だいすき（な）',rom:'daisuki (na)',en:'love / very fond of',na:true},
+      {jp:'だいきらい（な）',rom:'daikiraiな(na)',en:'hate ～が',na:true},
+      {jp:'きれい（な）',rom:'kirei (na)',en:'beautiful / clean',na:true},
+      {jp:'げんき（な）',rom:'genki (na)',en:'healthy / energetic',na:true},
+      {jp:'しずか（な）',rom:'shizuka (na)',en:'quiet',na:true},
+      {jp:'にぎやか（な）',rom:'nigiyaka (na)',en:'lively / bustling',na:true},
+      {jp:'ひま（な）',rom:'hima (na)',en:'free / not busy',na:true},
+      {jp:'かんたん（な）',rom:'kantan (na)',en:'easy / simple',na:true},
+      {jp:'たいへん（な）',rom:'taihen (na)',en:'hard / a big deal',na:true},
+      {jp:'ゆうめい（な）',rom:'yuumei (na)',en:'famous',na:true},
+      {jp:'にんき（な）',rom:'ninki (na)',en:'popular',na:true},
+      {jp:'かのう（な）',rom:'kanou (na)',en:'possible',na:true},
+    ],
+    examples:[
+      {jp:'このもんだいはかんたんです。',rom:'Kono mondai wa kantan desu.',en:'This problem is simple.'},
+      {jp:'このもんだいはかんたんじゃないです。',rom:'Kono mondai wa kantan ja nai desu.',en:'This problem is not simple.'},
+      {jp:'このもんだいはかんたんでした。',rom:'Kono mondai wa kantan deshita.',en:'This problem was simple.'},
+      {jp:'このもんだいはかんたんじゃなかったです。',rom:'Kono mondai wa kantan ja nakatta desu.',en:'This problem was not simple.'},
+      {jp:'きれいなひと',rom:'kirei na hito',en:'a beautiful person'},
+      {jp:'きれいなへや',rom:'kirei na heya',en:'a clean room'},
+      {jp:'しずかなへや',rom:'shizuka na heya',en:'a quiet room'},
+      {jp:'げんきなおじいちゃん → このおじいちゃんはげんきです。',rom:'genki na ojiichan → Kono ojiichan wa genki desu.',en:'active grandpa → This grandpa is energetic.'},
+      {jp:'きれいなひので',rom:'kirei na hinode',en:'a beautiful sunrise'},
+      {jp:'げんきじゃないです / げんきではないです / げんきじゃありません',rom:'genki ja nai desu / genki de wa nai desu / genki ja arimasen',en:'is not healthy — three correct forms'},
+      {jp:'どのきせつがいちばんすきですか。わたしはあきがいちばんすきです。',rom:'Dono kisetsu ga ichiban suki desu ka. Watashi wa aki ga ichiban suki desu.',en:'Which season do you like most? I like fall the most.'},
+      {jp:'ドラムがすきです。',rom:'Doramu ga suki desu.',en:'I like drums. (が marks what you like)'},
+      {jp:'いぬがだいすきです。',rom:'Inu ga daisuki desu.',en:'I love dogs.'},
+      {jp:'（わたしは）コーヒーがすきです。',rom:'(Watashi wa) koohii ga suki desu.',en:'I like coffee.'},
+      {jp:'きみはきれいだ。きみがすきだ。おとうとはげんきだ。',rom:'Kimi wa kirei da. Kimi ga suki da. Otouto wa genki da.',en:'You are beautiful. I like you. My younger brother is energetic. (casual)'},
+      {jp:'その町はにぎやかでしたか。いいえ、にぎやかじゃなかったです。',rom:'Sono machi wa nigiyaka deshita ka. Iie, nigiyaka ja nakatta desu.',en:'Was the town lively? No, it was not lively.'},
+    ]
+  },
+  // ─── 11. ~たいです ───
+  {
+    title:'〜たいです — Want to do',
+    tag:'Expression',
+    pattern:{jp:'[ます-stem] + たいです',en:'Drop ます, add たいです'},
+    note:'Replace ます with たいです to express what you want to do. The object can take が or を. Combine desires with と (and): さくらとふじさんをみたいです.',
+    examples:[
+      {jp:'わたしはすしがたべたいです。',rom:'Watashi wa sushi ga tabetai desu.',en:'I want to eat sushi.'},
+      {jp:'わたしはにほんにいきたいです。',rom:'Watashi wa Nihon ni ikitai desu.',en:'I want to go to Japan.'},
+      {jp:'わたしはさくらをみたいです。',rom:'Watashi wa sakura wo mitai desu.',en:'I want to see cherry blossoms.'},
+      {jp:'わたしはふじさんをみたいです。',rom:'Watashi wa Fujisan wo mitai desu.',en:'I want to see Mt. Fuji.'},
+      {jp:'さくらとふじさんをみたいです。',rom:'Sakura to Fujisan wo mitai desu.',en:'I want to see both cherry blossoms AND Mt. Fuji.'},
+      {jp:'さくらをみたいです。ふじさんもみたいです。',rom:'Sakura wo mitai desu. Fujisan mo mitai desu.',en:'I want to see cherry blossoms. I also want to see Mt. Fuji.'},
+      {jp:'わたしはせんそうじにいきたいです。',rom:'Watashi wa Sensouji ni ikitai desu.',en:'I want to go to Senso-ji temple.'},
+      {jp:'りょうちゅう、どこにいきたいですか。',rom:'Ryokou-chuu, doko ni ikitai desu ka.',en:'During the trip, where do you want to go?'},
+      {jp:'アマンダさんはにほんでなにをしたいですか。',rom:'Amanda-san wa Nihon de nani wo shitai desu ka.',en:'Amanda, what do you want to do in Japan?'},
+    ]
+  },
+  // ─── 12. ~ています ───
+  {
+    title:'〜ています — Ongoing Action / Current State',
+    tag:'Expression',
+    pattern:{jp:'[Te-form] + います',en:'Action in progress or current state'},
+    note:'Te-form + います describes: (1) something currently happening, or (2) a lasting state/situation. Context tells you which.',
+    examples:[
+      {jp:'テクノロジーのかいしゃではたらいています。',rom:'Tekunorojii no kaisha de hataraite imasu.',en:'I am working at a tech company.'},
+      {jp:'ともだちがいえにきています。',rom:'Tomodachi ga ie ni kite imasu.',en:'My friend is (on her way / arrived) at my house.'},
+      {jp:'〜ています = ongoing thing or situation',rom:'~te imasu',en:'can mean "currently doing" or "is in a state of"'},
+    ]
+  },
+  // ─── 13. Frequency Adverbs ───
+  {
+    title:'Frequency Adverbs — How often?',
+    tag:'Adverbs',
+    pattern:{jp:'いつも　たいてい　よく　ときどき　まいにち　ふだん',en:'Place before the verb'},
+    note:'These adverbs go before the verb. Frequency order from highest to lowest: いつも → たいてい → よく → ときどき.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th><th>Frequency</th></tr></thead><tbody>
+      <tr><td><span class="jp">いつも</span></td><td>itsumo</td><td>always / every time</td><td>100%</td></tr>
+      <tr><td><span class="jp">たいてい</span></td><td>taitei</td><td>usually / mostly</td><td>~80%</td></tr>
+      <tr><td><span class="jp">よく</span></td><td>yoku</td><td>often</td><td>~60%</td></tr>
+      <tr><td><span class="jp">ときどき</span></td><td>tokidoki</td><td>sometimes</td><td>~30%</td></tr>
+      <tr><td><span class="jp">まいにち</span></td><td>mainichi</td><td>every day</td><td>daily</td></tr>
+      <tr><td><span class="jp">ふだん</span></td><td>fudan</td><td>usually / normally</td><td>habit</td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'アマンダはいつもコーヒーをのみます。',rom:'Amanda wa itsumo koohii wo nomimasu.',en:'Amanda always drinks coffee.'},
+      {jp:'アマンダはまいにちみずをのみます。',rom:'Amanda wa mainichi mizu wo nomimasu.',en:'Amanda drinks water every day.'},
+      {jp:'たいていうちでべんきょうします。でも、ときどきえいがをみます。',rom:'Taitei uchi de benkyou shimasu. Demo, tokidoki eiga wo mimasu.',en:'I usually study at home. But sometimes I watch movies.'},
+      {jp:'よくじもとにかえります。',rom:'Yoku jimoto ni kaerimasu.',en:'I often go back to my hometown.'},
+    ]
+  },
+  // ─── 14. ね / よ ───
+  {
+    title:'〜ね / 〜よ — Sentence-ending Tags',
+    tag:'Expression',
+    pattern:{jp:'[Statement] ね　→　"right? / isn\'t it?"\n[Statement] よ　→　"I\'m telling you!"',en:'ね seeks agreement; よ asserts confidence'},
+    note:'"ね" is added when you expect the listener to agree or share your feeling. "よ" is used when you want to inform or assure the listener of something they might not know.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Tag</th><th>Romaji</th><th>Feeling</th></tr></thead><tbody>
+      <tr><td><span class="jp">〜ね</span></td><td>ne</td><td>"right?" / "isn't it?" — seeking agreement</td></tr>
+      <tr><td><span class="jp">〜よ</span></td><td>yo</td><td>"I tell you!" / "you know" — asserting</td></tr>
+      <tr><td><span class="jp">〜ですね</span></td><td>desu ne</td><td>Polite agreement-seeking</td></tr>
+      <tr><td><span class="jp">〜ですよ</span></td><td>desu yo</td><td>Polite assurance</td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'きょうはさむいですね。',rom:'Kyou wa samui desu ne.',en:'It\'s cold today, isn\'t it?'},
+      {jp:'リーさんのせんこうはぶんがくですね。',rom:'Rii-san no senkou wa bungaku desu ne.',en:'Ms. Lee, your major is literature, right?'},
+      {jp:'これはにくじゃないですね。',rom:'Kore wa niku ja nai desu ne.',en:'This is not meat, is it?'},
+      {jp:'とんかつはさかなじゃないですよ。',rom:'Tonkatsu wa sakana ja nai desu yo.',en:'"Tonkatsu" is not fish. (Let me assure you!)'},
+      {jp:'スミスさんはイギリスじんですよ。',rom:'Sumisu-san wa Igirisujin desu yo.',en:'Mr. Smith is British. (In case you\'re wondering)'},
+      {jp:'あぶないですよ！',rom:'Abunai desu yo!',en:'It\'s dangerous! (warning)'},
+      {jp:'そうですね。',rom:'Sou desu ne.',en:'I see / That\'s right, isn\'t it.'},
+    ]
+  },
+  // ─── 15. ごろ ───
+  {
+    title:'ごろ — Approximate Time',
+    tag:'Expression',
+    pattern:{jp:'[Time] ごろ / ごろに',en:'Around / about [time]'},
+    note:'Replace に with ごろ or ごろに to make a time approximate. Cannot be used for non-time measurements.',
+    examples:[
+      {jp:'じゅういちじごろねます。',rom:'Juuichiji goro nemasu.',en:'I\'ll go to sleep around 11 o\'clock.'},
+      {jp:'くじごろです。',rom:'Kuji goro desu.',en:'Around nine.'},
+      {jp:'なんじごろかえりますか。',rom:'Nanji goro kaerimasu ka.',en:'Around what time will you come back?'},
+      {jp:'ごご12じ29ふん',rom:'gogo juuniji nijuukyuufun',en:'12:29 PM'},
+    ]
+  },
+];
+
+const PHRASES = [
+  {
+    group:'👋 Greetings & Partings',
+    items:[
+      {jp:'おはようございます。',rom:'Ohayou gozaimasu.',en:'Good morning. (polite)'},
+      {jp:'こんにちは。',rom:'Konnichiwa.',en:'Good afternoon.'},
+      {jp:'こんばんは。',rom:'Konbanwa.',en:'Good evening.'},
+      {jp:'さようなら。',rom:'Sayounara.',en:'Goodbye.'},
+      {jp:'おやすみなさい。',rom:'Oyasumi nasai.',en:'Good night.'},
+      {jp:'またね。',rom:'Mata ne.',en:'See you again.'},
+      {jp:'いってきます。',rom:'Itte kimasu.',en:'I\'ll go and come back.'},
+      {jp:'ただいま。',rom:'Tadaima.',en:'I\'m home.'},
+    ]
+  },
+  {
+    group:'🙋 Self-Introduction',
+    items:[
+      {jp:'はじめまして。わたしはアマンダです。',rom:'Hajimemashite. Watashi wa Amanda desu.',en:'How do you do? I am Amanda.'},
+      {jp:'アメリカからきました。',rom:'Amerika kara kimashita.',en:'I came from America.'},
+      {jp:'しごとはかいしゃいんです。',rom:'Shigoto wa kaishain desu.',en:'My job is office worker.'},
+      {jp:'どうぞよろしくおねがいします。',rom:'Douzo yoroshiku onegai shimasu.',en:'It\'s nice to meet you.'},
+      {jp:'こちらこそ、どうぞよろしく。',rom:'Kochira koso, douzo yoroshiku.',en:'The pleasure is mine.'},
+    ]
+  },
+  {
+    group:'🍜 At a Restaurant',
+    items:[
+      {jp:'いらっしゃいませ。',rom:'Irasshaimase.',en:'Welcome! (to a store/restaurant)'},
+      {jp:'なんめいさまですか。',rom:'Nanmei-sama desu ka.',en:'How many people?'},
+      {jp:'よやくがありますか。',rom:'Yoyaku ga arimasu ka.',en:'Do you have a reservation?'},
+      {jp:'えいごのメニューはありますか。',rom:'Eigo no menyuu wa arimasu ka.',en:'Do you have an English menu?'},
+      {jp:'ちゅうもんをおねがいします。',rom:'Chuumon wo onegai shimasu.',en:'I would like to order.'},
+      {jp:'いじょうでよろしいですか。',rom:'Ijou de yoroshii desu ka.',en:'Is that all?'},
+      {jp:'おかいけいおねがいします。',rom:'Okaike onegai shimasu.',en:'Check, please.'},
+      {jp:'カードでおねがいします。',rom:'Kaado de onegai shimasu.',en:'By card, please.'},
+      {jp:'げんきんのみです。',rom:'Genkin nomi desu.',en:'Cash only.'},
+    ]
+  },
+  {
+    group:'⏰ Talking About Your Day',
+    items:[
+      {jp:'きょうはごぜん８じにおきました。',rom:'Kyou wa gozen hachiji ni okimashita.',en:'Today I woke up at 8 AM.'},
+      {jp:'ごご１じにともだちとランチにいきました。',rom:'Gogo ichiji ni tomodachi to ranchi ni ikimashita.',en:'I went to lunch with a friend at 1 PM.'},
+      {jp:'あしたにほんごをべんきょうします。',rom:'Ashita nihongo wo benkyou shimasu.',en:'Tomorrow I will study Japanese.'},
+      {jp:'しごとはごご７じにおわりました。',rom:'Shigoto wa gogo shichiji ni owarimashita.',en:'Work finished at 7 PM.'},
+      {jp:'ごごごじからごごしちじまでTikTokをみました。',rom:'Gogo goji kara gogo shichiji made TikTok wo mimashita.',en:'I watched TikTok from 5 to 7 PM.'},
+    ]
+  },
+  {
+    group:'📍 Asking Where Things Are',
+    items:[
+      {jp:'チームラボはどこですか。',rom:'Chiimu Rabo wa doko desu ka.',en:'Where is teamLab?'},
+      {jp:'トイレはどこですか。',rom:'Toire wa doko desu ka.',en:'Where is the bathroom?'},
+      {jp:'ここにあります。',rom:'Koko ni arimasu.',en:'It is here.'},
+      {jp:'あそこにいます。',rom:'Asoko ni imasu.',en:'(Someone) is over there.'},
+      {jp:'〜はなんじにあきますか。',rom:'~ wa nanji ni akimasu ka.',en:'What time does ~ open?'},
+    ]
+  },
+  {
+    group:'💬 Useful Expressions',
+    items:[
+      {jp:'そうですね。',rom:'Sou desu ne.',en:'I see / That\'s right.'},
+      {jp:'だいじょうぶです。',rom:'Daijoubu desu.',en:'It\'s okay / No problem.'},
+      {jp:'もんだいないです。',rom:'Mondai nai desu.',en:'No problem.',},
+      {jp:'すごい！',rom:'Sugoi!',en:'Wow! / Amazing!'},
+      {jp:'たのしかったです。',rom:'Tanoshikatta desu.',en:'It was fun.'},
+      {jp:'〜がすきです。',rom:'~ ga suki desu.',en:'I like ~.'},
+      {jp:'〜がだいすきです。',rom:'~ ga daisuki desu.',en:'I love ~.'},
+      {jp:'がんばって！',rom:'Ganbatte!',en:'Do your best!'},
+    ]
+  },
+];
+
+// ── KANA DATA ──
+const HIRAGANA = [
+  [{c:'あ',r:'a'},{c:'い',r:'i'},{c:'う',r:'u'},{c:'え',r:'e'},{c:'お',r:'o'}],
+  [{c:'か',r:'ka'},{c:'き',r:'ki'},{c:'く',r:'ku'},{c:'け',r:'ke'},{c:'こ',r:'ko'}],
+  [{c:'さ',r:'sa'},{c:'し',r:'shi'},{c:'す',r:'su'},{c:'せ',r:'se'},{c:'そ',r:'so'}],
+  [{c:'た',r:'ta'},{c:'ち',r:'chi'},{c:'つ',r:'tsu'},{c:'て',r:'te'},{c:'と',r:'to'}],
+  [{c:'な',r:'na'},{c:'に',r:'ni'},{c:'ぬ',r:'nu'},{c:'ね',r:'ne'},{c:'の',r:'no'}],
+  [{c:'は',r:'ha'},{c:'ひ',r:'hi'},{c:'ふ',r:'fu'},{c:'へ',r:'he'},{c:'ほ',r:'ho'}],
+  [{c:'ま',r:'ma'},{c:'み',r:'mi'},{c:'む',r:'mu'},{c:'め',r:'me'},{c:'も',r:'mo'}],
+  [{c:'や',r:'ya'},{c:null,r:''},{c:'ゆ',r:'yu'},{c:null,r:''},{c:'よ',r:'yo'}],
+  [{c:'ら',r:'ra'},{c:'り',r:'ri'},{c:'る',r:'ru'},{c:'れ',r:'re'},{c:'ろ',r:'ro'}],
+  [{c:'わ',r:'wa'},{c:null,r:''},{c:null,r:''},{c:null,r:''},{c:'を',r:'wo'}],
+  [{c:'ん',r:'n',colspan:5}],
+  // Dakuten
+  [{c:'が',r:'ga'},{c:'ぎ',r:'gi'},{c:'ぐ',r:'gu'},{c:'げ',r:'ge'},{c:'ご',r:'go'},],
+  [{c:'ざ',r:'za'},{c:'じ',r:'ji'},{c:'ず',r:'zu'},{c:'ぜ',r:'ze'},{c:'ぞ',r:'zo'}],
+  [{c:'だ',r:'da'},{c:'ぢ',r:'di'},{c:'づ',r:'du'},{c:'で',r:'de'},{c:'ど',r:'do'}],
+  [{c:'ば',r:'ba'},{c:'び',r:'bi'},{c:'ぶ',r:'bu'},{c:'べ',r:'be'},{c:'ぼ',r:'bo'}],
+  [{c:'ぱ',r:'pa'},{c:'ぴ',r:'pi'},{c:'ぷ',r:'pu'},{c:'ぺ',r:'pe'},{c:'ぽ',r:'po'}],
+];
+
+const HIRAGANA_COMBOS = [
+  [{c:'きゃ',r:'kya'},{c:'きゅ',r:'kyu'},{c:'きょ',r:'kyo'}],
+  [{c:'しゃ',r:'sha'},{c:'しゅ',r:'shu'},{c:'しょ',r:'sho'}],
+  [{c:'ちゃ',r:'cha'},{c:'ちゅ',r:'chu'},{c:'ちょ',r:'cho'}],
+  [{c:'にゃ',r:'nya'},{c:'にゅ',r:'nyu'},{c:'にょ',r:'nyo'}],
+  [{c:'ひゃ',r:'hya'},{c:'ひゅ',r:'hyu'},{c:'ひょ',r:'hyo'}],
+  [{c:'みゃ',r:'mya'},{c:'みゅ',r:'myu'},{c:'みょ',r:'myo'}],
+  [{c:'りゃ',r:'rya'},{c:'りゅ',r:'ryu'},{c:'りょ',r:'ryo'}],
+  [{c:'ぎゃ',r:'gya'},{c:'ぎゅ',r:'gyu'},{c:'ぎょ',r:'gyo'}],
+  [{c:'じゃ',r:'ja'},{c:'じゅ',r:'ju'},{c:'じょ',r:'jo'}],
+  [{c:'びゃ',r:'bya'},{c:'びゅ',r:'byu'},{c:'びょ',r:'byo'}],
+  [{c:'ぴゃ',r:'pya'},{c:'ぴゅ',r:'pyu'},{c:'ぴょ',r:'pyo'}],
+];
+
+const KATAKANA = [
+  [{c:'ア',r:'a'},{c:'イ',r:'i'},{c:'ウ',r:'u'},{c:'エ',r:'e'},{c:'オ',r:'o'}],
+  [{c:'カ',r:'ka'},{c:'キ',r:'ki'},{c:'ク',r:'ku'},{c:'ケ',r:'ke'},{c:'コ',r:'ko'}],
+  [{c:'サ',r:'sa'},{c:'シ',r:'shi'},{c:'ス',r:'su'},{c:'セ',r:'se'},{c:'ソ',r:'so'}],
+  [{c:'タ',r:'ta'},{c:'チ',r:'chi'},{c:'ツ',r:'tsu'},{c:'テ',r:'te'},{c:'ト',r:'to'}],
+  [{c:'ナ',r:'na'},{c:'ニ',r:'ni'},{c:'ヌ',r:'nu'},{c:'ネ',r:'ne'},{c:'ノ',r:'no'}],
+  [{c:'ハ',r:'ha'},{c:'ヒ',r:'hi'},{c:'フ',r:'fu'},{c:'ヘ',r:'he'},{c:'ホ',r:'ho'}],
+  [{c:'マ',r:'ma'},{c:'ミ',r:'mi'},{c:'ム',r:'mu'},{c:'メ',r:'me'},{c:'モ',r:'mo'}],
+  [{c:'ヤ',r:'ya'},{c:null,r:''},{c:'ユ',r:'yu'},{c:null,r:''},{c:'ヨ',r:'yo'}],
+  [{c:'ラ',r:'ra'},{c:'リ',r:'ri'},{c:'ル',r:'ru'},{c:'レ',r:'re'},{c:'ロ',r:'ro'}],
+  [{c:'ワ',r:'wa'},{c:null,r:''},{c:null,r:''},{c:null,r:''},{c:'ヲ',r:'wo'}],
+  [{c:'ン',r:'n',colspan:5}],
+  [{c:'ガ',r:'ga'},{c:'ギ',r:'gi'},{c:'グ',r:'gu'},{c:'ゲ',r:'ge'},{c:'ゴ',r:'go'}],
+  [{c:'ザ',r:'za'},{c:'ジ',r:'ji'},{c:'ズ',r:'zu'},{c:'ゼ',r:'ze'},{c:'ゾ',r:'zo'}],
+  [{c:'ダ',r:'da'},{c:'ヂ',r:'di'},{c:'ヅ',r:'du'},{c:'デ',r:'de'},{c:'ド',r:'do'}],
+  [{c:'バ',r:'ba'},{c:'ビ',r:'bi'},{c:'ブ',r:'bu'},{c:'ベ',r:'be'},{c:'ボ',r:'bo'}],
+  [{c:'パ',r:'pa'},{c:'ピ',r:'pi'},{c:'プ',r:'pu'},{c:'ペ',r:'pe'},{c:'ポ',r:'po'}],
+];
+
+const KATAKANA_COMBOS = [
+  [{c:'キャ',r:'kya'},{c:'キュ',r:'kyu'},{c:'キョ',r:'kyo'}],
+  [{c:'シャ',r:'sha'},{c:'シュ',r:'shu'},{c:'ショ',r:'sho'}],
+  [{c:'チャ',r:'cha'},{c:'チュ',r:'chu'},{c:'チョ',r:'cho'}],
+  [{c:'ニャ',r:'nya'},{c:'ニュ',r:'nyu'},{c:'ニョ',r:'nyo'}],
+  [{c:'ヒャ',r:'hya'},{c:'ヒュ',r:'hyu'},{c:'ヒョ',r:'hyo'}],
+  [{c:'ミャ',r:'mya'},{c:'ミュ',r:'myu'},{c:'ミョ',r:'myo'}],
+  [{c:'リャ',r:'rya'},{c:'リュ',r:'ryu'},{c:'リョ',r:'ryo'}],
+  [{c:'ギャ',r:'gya'},{c:'ギュ',r:'gyu'},{c:'ギョ',r:'gyo'}],
+  [{c:'ジャ',r:'ja'},{c:'ジュ',r:'ju'},{c:'ジョ',r:'jo'}],
+  [{c:'ビャ',r:'bya'},{c:'ビュ',r:'byu'},{c:'ビョ',r:'byo'}],
+  [{c:'ピャ',r:'pya'},{c:'ピュ',r:'pyu'},{c:'ピョ',r:'pyo'}],
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let currentSection = 'kana';
+let vocabMode = 'flashcard';
+let activeCategory = 'All';
+let filteredVocab = [...VOCAB];
+let fcIndex = 0;
+let vqIndex = 0, vqScore = 0, vqTotal = 0, vqShuffled = [];
+let vtIndex = 0, vtScore = 0, vtTotal = 0, vtShuffled = [];
+let mqIndex = 0, mqScore = 0, mqTotal = 0, mqShuffled = [];
+let kanaDrillType = 'hiragana';
+let allKana = [];
+let currentKanaDrill = null;
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  currentSection = name;
+}
+
+// ═══════════════════════════════════════════════════════
+//  KANA
+// ═══════════════════════════════════════════════════════
+function buildKanaTable(containerId, rows, isDakuten) {
+  const el = document.getElementById(containerId);
+  let html = '<table class="kana-table"><thead><tr><th>Row</th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr></thead><tbody>';
+  const rowLabels = ['—','k','s','t','n','h','m','y','r','w','n','g','z','d','b','p'];
+  rows.forEach((row, ri) => {
+    if (row.length === 1 && row[0].colspan) {
+      html += `<tr><td class="kana-table" style="background:var(--bg);padding:4px 10px;font-size:0.75rem;font-weight:700;color:var(--mid);">${isDakuten?'voiced':'—'}</td><td colspan="5"><div class="kana-cell" onclick="toggleKana(this)"><span class="kana-char jp">${row[0].c}</span><span class="kana-rom">${row[0].r}</span></div></td></tr>`;
+    } else {
+      const label = ri < rowLabels.length ? rowLabels[ri] : '';
+      const isDak = ri >= 11;
+      html += `<tr><td style="background:var(--bg);padding:4px 10px;font-size:0.75rem;font-weight:700;color:var(--mid);">${label}</td>`;
+      row.forEach(cell => {
+        if (!cell.c) {
+          html += `<td class="kana-empty"></td>`;
+        } else {
+          html += `<td><div class="kana-cell${isDak?' dakuten':''}" onclick="toggleKana(this)"><span class="kana-char jp">${cell.c}</span><span class="kana-rom">${cell.r}</span></div></td>`;
+        }
+      });
+      html += '</tr>';
+    }
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function buildComboTable(containerId, rows) {
+  const el = document.getElementById(containerId);
+  let html = '<table class="kana-table"><thead><tr><th>—</th><th>ya</th><th>yu</th><th>yo</th></tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr><td class="kana-empty"></td>';
+    row.forEach(cell => {
+      html += `<td><div class="kana-cell combo" onclick="toggleKana(this)"><span class="kana-char jp">${cell.c}</span><span class="kana-rom">${cell.r}</span></div></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function toggleKana(el) {
+  el.classList.toggle('revealed');
+}
+
+function buildAllKana() {
+  allKana = [];
+  HIRAGANA.forEach(row => row.forEach(c => { if (c.c) allKana.push({c:c.c,r:c.r,type:'hiragana'}); }));
+  HIRAGANA_COMBOS.forEach(row => row.forEach(c => allKana.push({c:c.c,r:c.r,type:'hiragana'})));
+  KATAKANA.forEach(row => row.forEach(c => { if (c.c) allKana.push({c:c.c,r:c.r,type:'katakana'}); }));
+  KATAKANA_COMBOS.forEach(row => row.forEach(c => allKana.push({c:c.c,r:c.r,type:'katakana'})));
+}
+
+function setKanaDrillType(type) {
+  kanaDrillType = type;
+  document.getElementById('kana-drill-type').textContent = type === 'both' ? 'Hiragana & Katakana' : type === 'hiragana' ? 'Hiragana' : 'Katakana';
+  nextKanaDrill();
+}
+
+function nextKanaDrill() {
+  let pool = allKana;
+  if (kanaDrillType !== 'both') pool = allKana.filter(k => k.type === kanaDrillType);
+  currentKanaDrill = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('kana-drill-char').textContent = currentKanaDrill.c;
+  document.getElementById('kana-drill-input').value = '';
+  document.getElementById('kana-drill-input').className = 'typing-input';
+  document.getElementById('kana-drill-feedback').textContent = '';
+  document.getElementById('kana-drill-feedback').style.color = '';
+  document.getElementById('kana-drill-input').focus();
+}
+
+function checkKanaDrill() {
+  if (!currentKanaDrill) return;
+  const input = document.getElementById('kana-drill-input').value.trim().toLowerCase();
+  const correct = currentKanaDrill.r.toLowerCase();
+  const fb = document.getElementById('kana-drill-feedback');
+  if (input === correct) {
+    fb.textContent = '✓ Correct!';
+    fb.style.color = 'var(--green)';
+    document.getElementById('kana-drill-input').className = 'typing-input correct';
+    setTimeout(nextKanaDrill, 800);
+  } else {
+    fb.textContent = `✗ Answer: ${currentKanaDrill.r}`;
+    fb.style.color = 'var(--red)';
+    document.getElementById('kana-drill-input').className = 'typing-input wrong';
+    setTimeout(nextKanaDrill, 1400);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  VOCABULARY
+// ═══════════════════════════════════════════════════════
+function getCategories() {
+  const cats = ['All', ...new Set(VOCAB.map(v => v.cat))];
+  return cats;
+}
+
+function buildVocabFilters() {
+  const el = document.getElementById('vocab-filters');
+  el.innerHTML = getCategories().map(c =>
+    `<button class="filter-btn${c==='All'?' active':''}" onclick="setCategory('${c}', this)">${c}</button>`
+  ).join('');
+}
+
+function setCategory(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeCategory = cat;
+  filteredVocab = cat === 'All' ? [...VOCAB] : VOCAB.filter(v => v.cat === cat);
+  shuffle(filteredVocab);
+  fcIndex = 0;
+  renderFlashcard();
+  renderVocabList();
+  startVocabQuiz();
+  startTyping();
+}
+
+function setVocabMode(mode) {
+  vocabMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('vocab-flashcard-mode').style.display = mode === 'flashcard' ? '' : 'none';
+  document.getElementById('vocab-quiz-mode').style.display = mode === 'quiz' ? '' : 'none';
+  document.getElementById('vocab-type-mode').style.display = mode === 'type' ? '' : 'none';
+  document.getElementById('vocab-list-mode').style.display = mode === 'list' ? '' : 'none';
+  if (mode === 'list') renderVocabList();
+  if (mode === 'quiz') startVocabQuiz();
+  if (mode === 'type') startTyping();
+}
+
+// FLASHCARD
+function renderFlashcard() {
+  if (!filteredVocab.length) return;
+  const v = filteredVocab[fcIndex];
+  document.getElementById('fc-jp').textContent = v.jp;
+  document.getElementById('fc-romaji').textContent = v.rom;
+  document.getElementById('fc-en').textContent = v.en;
+  document.getElementById('fc-cat').textContent = v.cat;
+  document.getElementById('fc-counter').textContent = `${fcIndex+1} / ${filteredVocab.length}`;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard() {
+  document.getElementById('flashcard').classList.toggle('flipped');
+}
+function nextCard() { fcIndex = (fcIndex + 1) % filteredVocab.length; renderFlashcard(); }
+function prevCard() { fcIndex = (fcIndex - 1 + filteredVocab.length) % filteredVocab.length; renderFlashcard(); }
+function shuffleCards() { shuffle(filteredVocab); fcIndex = 0; renderFlashcard(); }
+
+// QUIZ
+function startVocabQuiz() {
+  vqShuffled = shuffle([...filteredVocab]);
+  vqIndex = 0; vqScore = 0; vqTotal = 0;
+  nextVocabQuiz();
+}
+
+function nextVocabQuiz() {
+  if (vqIndex >= vqShuffled.length) vqIndex = 0;
+  const v = vqShuffled[vqIndex];
+  document.getElementById('vq-jp').textContent = v.jp;
+  document.getElementById('vq-romaji').textContent = v.rom;
+  document.getElementById('vq-feedback').textContent = '';
+  document.getElementById('vq-next').style.display = 'none';
+  // generate 4 options
+  const others = VOCAB.filter(x => x.en !== v.en);
+  shuffle(others);
+  const opts = shuffle([v, ...others.slice(0,3)]);
+  const el = document.getElementById('vq-options');
+  el.innerHTML = opts.map(o =>
+    `<div class="quiz-opt" onclick="checkVocabQuiz(this,'${escQ(o.en)}','${escQ(v.en)}')">${o.en}</div>`
+  ).join('');
+  const pct = vqTotal ? Math.round(vqScore/vqTotal*100) : 0;
+  document.getElementById('vq-score').textContent = `Score: ${vqScore} / ${vqTotal} (${pct}%)`;
+  document.getElementById('vq-progress').style.width = pct + '%';
+}
+
+function checkVocabQuiz(el, chosen, correct) {
+  if (el.classList.contains('disabled')) return;
+  document.querySelectorAll('.quiz-opt').forEach(o => { o.classList.add('disabled'); });
+  vqTotal++;
+  if (chosen === correct) {
+    el.classList.add('correct');
+    document.getElementById('vq-feedback').textContent = '✓ Correct!';
+    document.getElementById('vq-feedback').style.color = 'var(--green)';
+    vqScore++;
+  } else {
+    el.classList.add('wrong');
+    document.getElementById('vq-feedback').textContent = `✗ Correct answer: ${correct}`;
+    document.getElementById('vq-feedback').style.color = 'var(--red)';
+    document.querySelectorAll('.quiz-opt').forEach(o => { if (o.textContent === correct) o.classList.add('correct'); });
+  }
+  vqIndex++;
+  document.getElementById('vq-next').style.display = '';
+  const pct = Math.round(vqScore/vqTotal*100);
+  document.getElementById('vq-score').textContent = `Score: ${vqScore} / ${vqTotal} (${pct}%)`;
+  document.getElementById('vq-progress').style.width = pct + '%';
+}
+
+// TYPING
+function startTyping() {
+  vtShuffled = shuffle([...filteredVocab]);
+  vtIndex = 0; vtScore = 0; vtTotal = 0;
+  nextTypingItem();
+}
+
+function nextTypingItem() {
+  if (vtIndex >= vtShuffled.length) vtIndex = 0;
+  const v = vtShuffled[vtIndex];
+  document.getElementById('vt-en').textContent = v.en;
+  document.getElementById('vt-hint').textContent = `Category: ${v.cat}`;
+  document.getElementById('vt-input').value = '';
+  document.getElementById('vt-input').className = 'typing-input';
+  document.getElementById('vt-answer').innerHTML = '';
+  document.getElementById('vt-score').textContent = `Score: ${vtScore} / ${vtTotal}`;
+  document.getElementById('vt-input').focus();
+}
+
+function checkTyping() {
+  const v = vtShuffled[vtIndex];
+  const input = document.getElementById('vt-input').value.trim().toLowerCase();
+  const romaji = v.rom.toLowerCase();
+  const jp = v.jp;
+  vtTotal++;
+  if (input === romaji || input === jp) {
+    document.getElementById('vt-input').className = 'typing-input correct';
+    document.getElementById('vt-answer').innerHTML = `✓ Correct!`;
+    document.getElementById('vt-answer').style.color = 'var(--green)';
+    vtScore++;
+    vtIndex++;
+    setTimeout(nextTypingItem, 900);
+  } else {
+    document.getElementById('vt-input').className = 'typing-input wrong';
+    document.getElementById('vt-answer').innerHTML = `✗ Answer: <span class="jp-answer">${jp}</span> (${v.rom})`;
+    document.getElementById('vt-answer').style.color = 'var(--red)';
+    vtIndex++;
+    setTimeout(nextTypingItem, 1600);
+  }
+  document.getElementById('vt-score').textContent = `Score: ${vtScore} / ${vtTotal}`;
+}
+
+function nextTyping() { vtIndex++; nextTypingItem(); }
+
+// LIST
+function renderVocabList() {
+  const el = document.getElementById('vocab-list-grid');
+  // Always use original VOCAB order for list view (flashcard/quiz/typing stay shuffled)
+  const listData = activeCategory === 'All' ? VOCAB : VOCAB.filter(v => v.cat === activeCategory);
+  el.innerHTML = listData.map(v =>
+    `<div class="vocab-item">
+      <div class="vocab-jp jp">${v.jp}</div>
+      <div class="vocab-romaji">${v.rom}</div>
+      <div class="vocab-en">${v.en}</div>
+    </div>`
+  ).join('');
+  // Show number charts only in Numbers category
+  const charts = document.getElementById('number-charts');
+  if (activeCategory === 'Numbers') {
+    charts.style.display = '';
+    buildNumberCharts();
+  } else {
+    charts.style.display = 'none';
+  }
+}
+
+function buildNumberCharts() {
+  const hundreds = [
+    {val:'100',jp:'ひゃく',rom:'hyaku'},
+    {val:'200',jp:'にひゃく',rom:'nihyaku'},
+    {val:'300',jp:'さんびゃく',rom:'sanbyaku',irr:true},
+    {val:'400',jp:'よんひゃく',rom:'yonhyaku'},
+    {val:'500',jp:'ごひゃく',rom:'gohyaku'},
+    {val:'600',jp:'ろっぴゃく',rom:'roppyaku',irr:true},
+    {val:'700',jp:'ななひゃく',rom:'nanahyaku'},
+    {val:'800',jp:'はっぴゃく',rom:'happyaku',irr:true},
+    {val:'900',jp:'きゅうひゃく',rom:'kyuuhyaku'},
+  ];
+  const thousands = [
+    {val:'1,000',jp:'せん',rom:'sen'},
+    {val:'2,000',jp:'にせん',rom:'nisen'},
+    {val:'3,000',jp:'さんぜん',rom:'sanzen',irr:true},
+    {val:'4,000',jp:'よんせん',rom:'yonsen'},
+    {val:'5,000',jp:'ごせん',rom:'gosen'},
+    {val:'6,000',jp:'ろくせん',rom:'rokusen'},
+    {val:'7,000',jp:'ななせん',rom:'nanasen'},
+    {val:'8,000',jp:'はっせん',rom:'hassen',irr:true},
+    {val:'9,000',jp:'きゅうせん',rom:'kyuusen'},
+  ];
+  const tenthousands = [
+    {val:'10,000',jp:'いちまん',rom:'ichiman'},
+    {val:'20,000',jp:'にまん',rom:'niman'},
+    {val:'30,000',jp:'さんまん',rom:'sanman'},
+    {val:'40,000',jp:'よんまん',rom:'yonman'},
+    {val:'50,000',jp:'ごまん',rom:'goman'},
+    {val:'60,000',jp:'ろくまん',rom:'rokuman'},
+    {val:'70,000',jp:'ななまん',rom:'nanaman'},
+    {val:'80,000',jp:'はちまん',rom:'hachiman'},
+    {val:'90,000',jp:'きゅうまん',rom:'kyuuman'},
+    {val:'100,000',jp:'じゅうまん',rom:'juuman'},
+  ];
+  const makeTable = (title, data) => `
+    <div class="num-chart">
+      <h3>${title}</h3>
+      <table class="num-chart-table">
+        <tr>${data.map(d => `<th>${d.val}</th>`).join('')}</tr>
+        <tr>${data.map(d => `<td${d.irr ? ' class="irr"' : ''}>
+          <div class="nc-jp jp">${d.jp}</div>
+          <div class="nc-rom">${d.rom}</div>
+        </td>`).join('')}</tr>
+      </table>
+      ${data.some(d => d.irr) ? '<p class="irr-note">⚠️ Highlighted cells have irregular pronunciations</p>' : ''}
+    </div>`;
+  document.getElementById('number-charts').innerHTML =
+    makeTable('Hundreds — ひゃく (hyaku)', hundreds) +
+    makeTable('Thousands — せん (sen)', thousands) +
+    makeTable('Ten-Thousands — まん (man)', tenthousands);
+}
+
+// ═══════════════════════════════════════════════════════
+//  GRAMMAR
+// ═══════════════════════════════════════════════════════
+function buildGrammar() {
+  const el = document.getElementById('grammar-cards');
+  el.innerHTML = GRAMMAR.map((g, i) => `
+    <div class="grammar-card">
+      <div class="grammar-header" onclick="toggleGrammar(${i})">
+        <span class="grammar-title">${g.title}</span>
+        <span class="grammar-tag">${g.tag}</span>
+      </div>
+      <div class="grammar-body" id="gram-${i}">
+        <div class="grammar-pattern">
+          <div class="pattern-jp jp">${g.pattern.jp.replace(/\n/g,'<br>')}</div>
+          <div class="pattern-en">${g.pattern.en}</div>
+        </div>
+        ${g.note ? `<div class="note-box">📝 ${g.note}</div>` : ''}
+        ${g.tableHtml ? g.tableHtml : ''}
+        ${g.adjGrid ? `<div class="adj-grid">${g.adjGrid.map(a=>`<div class="adj-item${a.na?' na-adj':''}"><div class="jp">${a.jp}</div><div class="rom">${a.rom}</div><div class="en">${a.en}</div></div>`).join('')}</div>` : ''}
+        <br>
+        ${g.examples.map(ex => `
+          <div class="example-row">
+            <div>
+              <div class="ex-jp jp">${ex.jp}</div>
+              <div class="ex-romaji">${ex.rom}</div>
+            </div>
+            <div class="ex-en">${ex.en}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  // open first one
+  document.getElementById('gram-0').classList.add('open');
+}
+
+function toggleGrammar(i) {
+  const el = document.getElementById('gram-' + i);
+  el.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PHRASES
+// ═══════════════════════════════════════════════════════
+function buildPhrases() {
+  const el = document.getElementById('phrases-content');
+  el.innerHTML = PHRASES.map(group => `
+    <div class="card phrase-group">
+      <div class="phrase-group-title">${group.group}</div>
+      ${group.items.map(p => `
+        <div class="phrase-row">
+          <div>
+            <div class="phrase-jp jp">${p.jp}</div>
+            <div class="phrase-romaji">${p.rom}</div>
+          </div>
+          <div class="phrase-en">${p.en}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MIXED QUIZ
+// ═══════════════════════════════════════════════════════
+function startMixedQuiz() {
+  mqShuffled = shuffle([...VOCAB]);
+  mqIndex = 0; mqScore = 0; mqTotal = 0;
+  document.getElementById('mixed-score-banner').style.display = 'none';
+  nextMixedQuiz();
+}
+
+function nextMixedQuiz() {
+  if (mqIndex >= mqShuffled.length) {
+    document.getElementById('mixed-score-banner').style.display = '';
+    document.getElementById('ms-num').textContent = `${mqScore}/${mqTotal}`;
+    document.getElementById('mq-jp').textContent = '🎉 Round complete!';
+    document.getElementById('mq-romaji').textContent = `You scored ${mqScore} out of ${mqTotal}`;
+    document.getElementById('mq-options').innerHTML = '';
+    document.getElementById('mq-next').style.display = 'none';
+    return;
+  }
+  const v = mqShuffled[mqIndex];
+  document.getElementById('mq-jp').textContent = v.jp;
+  document.getElementById('mq-romaji').textContent = v.rom;
+  document.getElementById('mq-context').textContent = `Category: ${v.cat}`;
+  document.getElementById('mq-feedback').textContent = '';
+  document.getElementById('mq-next').style.display = 'none';
+  const others = VOCAB.filter(x => x.en !== v.en);
+  shuffle(others);
+  const opts = shuffle([v, ...others.slice(0,3)]);
+  const el = document.getElementById('mq-options');
+  el.innerHTML = opts.map(o =>
+    `<div class="quiz-opt" onclick="checkMixed(this,'${escQ(o.en)}','${escQ(v.en)}')">${o.en}</div>`
+  ).join('');
+}
+
+function checkMixed(el, chosen, correct) {
+  if (el.classList.contains('disabled')) return;
+  document.querySelectorAll('#mq-options .quiz-opt').forEach(o => o.classList.add('disabled'));
+  mqTotal++;
+  if (chosen === correct) {
+    el.classList.add('correct');
+    document.getElementById('mq-feedback').textContent = '✓ Correct!';
+    document.getElementById('mq-feedback').style.color = 'var(--green)';
+    mqScore++;
+  } else {
+    el.classList.add('wrong');
+    document.getElementById('mq-feedback').textContent = `✗ Answer: ${correct}`;
+    document.getElementById('mq-feedback').style.color = 'var(--red)';
+    document.querySelectorAll('#mq-options .quiz-opt').forEach(o => { if (o.textContent === correct) o.classList.add('correct'); });
+  }
+  mqIndex++;
+  document.getElementById('mq-next').style.display = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function escQ(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+buildKanaTable('hiragana-main', HIRAGANA, false);
+buildComboTable('hiragana-combo', HIRAGANA_COMBOS);
+buildKanaTable('katakana-main', KATAKANA, false);
+buildComboTable('katakana-combo', KATAKANA_COMBOS);
+buildAllKana();
+nextKanaDrill();
+buildVocabFilters();
+shuffle(filteredVocab);
+renderFlashcard();
+renderVocabList();
+buildGrammar();
+buildPhrases();
+startMixedQuiz();
+</script>
+</body>
+</html>
