@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amanda's Japanese Workbook</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -133,13 +134,15 @@
   /* KANA */
   .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
   .kana-section-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--dark); display: flex; align-items: center; gap: 8px; }
-  .kana-table { border-collapse: collapse; min-width: 400px; width: 100%; }
-  .kana-table th { background: var(--pink-light); font-size: 0.75rem; padding: 7px 10px; font-weight: 700; color: var(--mid); text-align: center; border: 1px solid var(--pink-mid); }
-  .kana-table td { border: 1px solid var(--border); padding: 0; text-align: center; vertical-align: middle; min-width: 52px; }
-  .kana-cell { padding: 8px 6px; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .kana-table { border-collapse: collapse; width: 100%; }
+  .kana-table th { background: var(--pink-light); font-size: 0.75rem; padding: 7px 8px; font-weight: 700; color: var(--mid); text-align: center; border: 1px solid var(--pink-mid); }
+  .kana-table th.lbl { width: 28px; min-width: 28px; padding: 7px 3px; }
+  .kana-table td { border: 1px solid var(--border); padding: 0; text-align: center; vertical-align: middle; }
+  .kana-table td.lbl { width: 28px; min-width: 28px; background: var(--bg); padding: 3px 3px; font-size: 0.7rem; font-weight: 700; color: var(--mid); text-align: center; }
+  .kana-cell { padding: 10px 8px; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .kana-cell:hover { background: var(--pink-light); }
-  .kana-char { font-family: 'Noto Sans JP', sans-serif; font-size: 1.3rem; line-height: 1; }
-  .kana-rom { font-size: 0.7rem; color: var(--red); font-weight: 600; display: none; }
+  .kana-char { font-family: 'Noto Sans JP', sans-serif; font-size: 1.9rem; line-height: 1; }
+  .kana-rom { font-size: 0.72rem; color: var(--red); font-weight: 600; display: none; }
   .kana-cell.revealed .kana-rom { display: block; }
   .kana-cell.dakuten { background: #fff5f0; }
   .kana-cell.combo { background: #f5f0ff; }
@@ -204,7 +207,6 @@
   <span>🌸</span>
   <div>
     <h1>Amanda's Japanese Workbook</h1>
-    <div class="header-sub">Updated after each class · Week 1–3 content loaded</div>
   </div>
 </header>
 
@@ -1127,15 +1129,16 @@ function showSection(name) {
 // ═══════════════════════════════════════════════════════
 function buildKanaTable(containerId, rows, isDakuten) {
   const el = document.getElementById(containerId);
-  let html = '<table class="kana-table"><thead><tr><th>Row</th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr></thead><tbody>';
+  let html = '<table class="kana-table"><thead><tr><th class="lbl"></th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr></thead><tbody>';
   const rowLabels = ['—','k','s','t','n','h','m','y','r','w','n','g','z','d','b','p'];
   rows.forEach((row, ri) => {
     if (row.length === 1 && row[0].colspan) {
-      html += `<tr><td class="kana-table" style="background:var(--bg);padding:4px 10px;font-size:0.75rem;font-weight:700;color:var(--mid);">${isDakuten?'voiced':'—'}</td><td colspan="5"><div class="kana-cell" onclick="toggleKana(this)"><span class="kana-char jp">${row[0].c}</span><span class="kana-rom">${row[0].r}</span></div></td></tr>`;
+      // ん / ン — label always "n", romaji always visible
+      html += `<tr><td class="lbl">n</td><td colspan="5"><div class="kana-cell revealed" onclick="toggleKana(this)"><span class="kana-char jp">${row[0].c}</span><span class="kana-rom">${row[0].r}</span></div></td></tr>`;
     } else {
       const label = ri < rowLabels.length ? rowLabels[ri] : '';
       const isDak = ri >= 11;
-      html += `<tr><td style="background:var(--bg);padding:4px 10px;font-size:0.75rem;font-weight:700;color:var(--mid);">${label}</td>`;
+      html += `<tr><td class="lbl">${label}</td>`;
       row.forEach(cell => {
         if (!cell.c) {
           html += `<td class="kana-empty"></td>`;
@@ -1150,11 +1153,20 @@ function buildKanaTable(containerId, rows, isDakuten) {
   el.innerHTML = html;
 }
 
-function buildComboTable(containerId, rows) {
+function buildComboTable(containerId, rows, standalone) {
   const el = document.getElementById(containerId);
-  let html = '<table class="kana-table"><thead><tr><th>—</th><th>ya</th><th>yu</th><th>yo</th></tr></thead><tbody>';
-  rows.forEach(row => {
-    html += '<tr><td class="kana-empty"></td>';
+  const comboLabels = ['k','sh','ch','n','h','m','r','g','j','b','p'];
+  let html = '<table class="kana-table"><thead><tr><th class="lbl">—</th><th>ya</th><th>yu</th><th>yo</th></tr></thead><tbody>';
+  // Standalone ya/yu/yo row
+  html += '<tr><td class="lbl">—</td>';
+  standalone.forEach(cell => {
+    html += `<td><div class="kana-cell revealed" onclick="toggleKana(this)"><span class="kana-char jp">${cell.c}</span><span class="kana-rom">${cell.r}</span></div></td>`;
+  });
+  html += '</tr>';
+  // Consonant combo rows
+  rows.forEach((row, ri) => {
+    const label = comboLabels[ri] || '';
+    html += `<tr><td class="lbl">${label}</td>`;
     row.forEach(cell => {
       html += `<td><div class="kana-cell combo" onclick="toggleKana(this)"><span class="kana-char jp">${cell.c}</span><span class="kana-rom">${cell.r}</span></div></td>`;
     });
@@ -1572,9 +1584,9 @@ function escQ(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 //  INIT
 // ═══════════════════════════════════════════════════════
 buildKanaTable('hiragana-main', HIRAGANA, false);
-buildComboTable('hiragana-combo', HIRAGANA_COMBOS);
+buildComboTable('hiragana-combo', HIRAGANA_COMBOS, [{c:'や',r:'ya'},{c:'ゆ',r:'yu'},{c:'よ',r:'yo'}]);
 buildKanaTable('katakana-main', KATAKANA, false);
-buildComboTable('katakana-combo', KATAKANA_COMBOS);
+buildComboTable('katakana-combo', KATAKANA_COMBOS, [{c:'ヤ',r:'ya'},{c:'ユ',r:'yu'},{c:'ヨ',r:'yo'}]);
 buildAllKana();
 nextKanaDrill();
 buildVocabFilters();
