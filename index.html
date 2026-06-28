@@ -139,6 +139,12 @@
   .phrase-feedback { font-size: 0.78rem; margin-top: 5px; min-height: 1em; }
   .phrase-feedback.ok { color: #2a9d2a; font-weight: 700; }
   .phrase-feedback.err { color: #c0392b; }
+  /* API key setup banner */
+  .api-banner { display:flex; align-items:center; gap:10px; background:var(--pink-light); border:1.5px solid var(--pink-mid); border-radius:10px; padding:10px 14px; margin-bottom:18px; font-size:0.82rem; flex-wrap:wrap; }
+  .api-banner input { flex:1; min-width:180px; border:1.5px solid var(--pink-mid); border-radius:8px; padding:5px 10px; font-size:0.82rem; outline:none; }
+  .api-banner input:focus { border-color:var(--red); }
+  .api-banner-ok { color:#2a9d2a; font-weight:700; }
+  .api-banner-err { color:#c0392b; }
 
   /* KANA */
   .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
@@ -1712,21 +1718,28 @@ function normalizeJP(s) {
   return h.replace(/[\s　。、！？!?,.'"「」【】ー～]/g, '').trim().toLowerCase();
 }
 
-// Check if the hiragana parts of the heard text appear in-sequence inside the expected text.
-// This handles the case where Chrome returns kanji (e.g. 初めまして) —
-// the kana portions (めまして) are still checked against the expected hiragana phrase.
-function kanaSubsequenceMatch(heard, expectedJp) {
-  if (typeof wanakana === 'undefined') return false;
-  const heardHira = wanakana.toHiragana(heard, {passRomaji: true})
-    .replace(/[^぀-ゟ]/g, ''); // keep only hiragana, drop kanji
-  const expHira = normalizeJP(expectedJp);
-  if (heardHira.length < 3) return false;
-  // Walk through expHira looking for each character of heardHira in order
+// Convert text to romaji, stripping kanji and punctuation, leaving only ASCII letters.
+// Katakana and hiragana → romaji via wanakana; kanji pass through then get stripped.
+// This avoids Unicode range issues entirely and works for mixed kanji/kana text.
+function toRomajiStripped(s) {
+  if (typeof wanakana === 'undefined') return '';
+  return wanakana.toRomaji(
+    wanakana.toHiragana(s, {passRomaji: true})
+  ).replace(/[^a-z]/gi, '').toLowerCase();
+}
+
+// Check if the romaji of the heard text is a subsequence of the expected romaji.
+// e.g. 私はチョコが食べたいです → "wachokogabetaidesu"
+//      which is a subsequence of "watashiwachokogatabetaidesu" ✅
+function romajiSubsequenceMatch(heard, expectedJp) {
+  const heardRom = toRomajiStripped(heard);
+  const expRom   = toRomajiStripped(expectedJp);
+  if (heardRom.length < 4) return false;
   let hi = 0;
-  for (let ei = 0; ei < expHira.length && hi < heardHira.length; ei++) {
-    if (heardHira[hi] === expHira[ei]) hi++;
+  for (let ei = 0; ei < expRom.length && hi < heardRom.length; ei++) {
+    if (heardRom[hi] === expRom[ei]) hi++;
   }
-  return hi === heardHira.length; // all heard-kana found in sequence
+  return hi === heardRom.length;
 }
 
 function speechHint(normHeard, normExpected) {
@@ -1741,7 +1754,74 @@ function speechHint(normHeard, normExpected) {
   return 'Try saying it more slowly, one part at a time.';
 }
 
-function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
+// ── Gemini API key helpers ──────────────────────────────
+const GEMINI_KEY_STORAGE = 'jpwb_gemini_key';
+function getGeminiKey() { return localStorage.getItem(GEMINI_KEY_STORAGE) || ''; }
+function setGeminiKey(k) {
+  if (k) localStorage.setItem(GEMINI_KEY_STORAGE, k.trim());
+  else localStorage.removeItem(GEMINI_KEY_STORAGE);
+}
+
+// ── Render the API key banner (called by buildPhrases) ──
+function renderApiBanner() {
+  const key = getGeminiKey();
+  return `
+    <div class="api-banner" id="api-banner">
+      <span>🔑 Gemini API key:</span>
+      <input type="password" id="gemini-key-input" placeholder="Paste your key here…"
+             value="${key ? '••••••••' : ''}"
+             oninput="handleGeminiKeyInput(this)"
+             onfocus="if(getGeminiKey())this.value=''"
+             onblur="if(!this.value.trim()&&getGeminiKey())this.value='••••••••'">
+      <span id="api-banner-status" class="${key ? 'api-banner-ok' : 'api-banner-err'}">
+        ${key ? '✅ Saved' : '⚠️ No key — get a free key at ai.google.dev'}
+      </span>
+    </div>`;
+}
+function handleGeminiKeyInput(input) {
+  const val = input.value.trim();
+  if (val && val !== '••••••••') {
+    setGeminiKey(val);
+    const st = document.getElementById('api-banner-status');
+    if (st) { st.textContent = '✅ Saved'; st.className = 'api-banner-ok'; }
+  }
+}
+
+// ── Gemini semantic comparison ──────────────────────────
+async function checkWithGemini(heard, expectedJp, expectedEn) {
+  const key = getGeminiKey();
+  if (!key) return null; // no key → fall back to text match
+  const prompt = `You are a Japanese language teacher. A student was asked to say this Japanese sentence: "${expectedJp}" (meaning: "${expectedEn}").
+The speech recogniser heard: "${heard}".
+Even if the spelling differs (e.g. kanji vs hiragana, or a particle written differently), decide if the student said essentially the correct sentence.
+Reply with exactly one JSON object: {"correct": true} or {"correct": false, "hint": "one short sentence of specific feedback for the student in English"}`;
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          contents: [{parts: [{text: prompt}]}],
+          generationConfig: {temperature: 0, maxOutputTokens: 80}
+        })
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return {error: err?.error?.message || `HTTP ${res.status}`};
+    }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    return JSON.parse(match[0]);
+  } catch(e) {
+    return {error: e.message};
+  }
+}
+
+async function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
   if (!SpeechRecog) {
     feedbackEl.textContent = 'Speech recognition not supported — try Chrome.';
     feedbackEl.className = 'phrase-feedback err';
@@ -1751,37 +1831,59 @@ function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
   const rec = new SpeechRecog();
   rec.lang = 'ja-JP';
   rec.interimResults = false;
-  rec.maxAlternatives = 10; // Chrome often returns hiragana as a lower-ranked alternative
+  rec.maxAlternatives = 10;
   btn.textContent = '⏹';
   btn.classList.add('listening');
   feedbackEl.textContent = '🎙 Listening…';
   feedbackEl.className = 'phrase-feedback';
   rec.start();
-  rec.onresult = (e) => {
-    const transcripts = Array.from(e.results[0]).map(r => r.transcript);
-    const heard = transcripts[0];
-    const normJp = normalizeJP(expectedJp);
-    const normEn = normalizeJP(expectedEn);
-    const matched =
-      // 1. Exact match after katakana→hiragana normalisation (any of 10 alternatives)
-      transcripts.some(t => { const n = normalizeJP(t); return n === normJp || n === normEn; }) ||
-      // 2. Hiragana parts of the heard text appear in-sequence inside the expected phrase
-      //    (handles kanji returns, e.g. 初めまして → kana め・ま・し・て still found in はじめまして)
-      kanaSubsequenceMatch(heard, expectedJp);
-    if (matched) {
-      feedbackEl.innerHTML = `✅ Correct!`;
-      feedbackEl.className = 'phrase-feedback ok';
-    } else {
-      const normHeard = normalizeJP(heard);
-      const hint = speechHint(normHeard, normJp);
-      feedbackEl.innerHTML =
-        `❌ Heard: <em>${heard}</em><br>` +
-        `<span style="opacity:0.85">Expected: <em>${expectedJp}</em></span><br>` +
-        `<span style="font-style:italic;opacity:0.75">${hint}</span>`;
-      feedbackEl.className = 'phrase-feedback err';
-    }
+  rec.onresult = async (e) => {
     btn.textContent = '🎤';
     btn.classList.remove('listening');
+    const transcripts = Array.from(e.results[0]).map(r => r.transcript);
+    const heard = transcripts[0];
+
+    // Show "checking" state while Gemini runs
+    feedbackEl.textContent = '🔍 Checking…';
+    feedbackEl.className = 'phrase-feedback';
+
+    const geminiResult = await checkWithGemini(heard, expectedJp, expectedEn);
+
+    if (geminiResult && !geminiResult.error) {
+      // ── Gemini answered ──
+      if (geminiResult.correct) {
+        feedbackEl.innerHTML = `✅ Correct!`;
+        feedbackEl.className = 'phrase-feedback ok';
+      } else {
+        const hint = geminiResult.hint || 'Try again — focus on each part carefully.';
+        feedbackEl.innerHTML =
+          `❌ Heard: <em>${heard}</em><br>` +
+          `<span style="font-style:italic;opacity:0.8">${hint}</span>`;
+        feedbackEl.className = 'phrase-feedback err';
+      }
+    } else {
+      // ── No Gemini key or error → fall back to local matching ──
+      if (geminiResult && geminiResult.error) {
+        console.warn('Gemini error:', geminiResult.error);
+      }
+      const normJp = normalizeJP(expectedJp);
+      const normEn = normalizeJP(expectedEn);
+      const matched =
+        transcripts.some(t => { const n = normalizeJP(t); return n === normJp || n === normEn; }) ||
+        romajiSubsequenceMatch(heard, expectedJp);
+      if (matched) {
+        feedbackEl.innerHTML = `✅ Correct!`;
+        feedbackEl.className = 'phrase-feedback ok';
+      } else {
+        const normHeard = normalizeJP(heard);
+        const hint = speechHint(normHeard, normJp);
+        feedbackEl.innerHTML =
+          `❌ Heard: <em>${heard}</em><br>` +
+          `<span style="opacity:0.85">Expected: <em>${expectedJp}</em></span><br>` +
+          `<span style="font-style:italic;opacity:0.75">${hint}</span>`;
+        feedbackEl.className = 'phrase-feedback err';
+      }
+    }
   };
   rec.onerror = (e) => {
     feedbackEl.textContent = e.error === 'no-speech' ? 'No speech detected — try again.' : `Error: ${e.error}`;
@@ -1802,7 +1904,7 @@ function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
 // ═══════════════════════════════════════════════════════
 function buildPhrases() {
   const el = document.getElementById('phrases-content');
-  el.innerHTML = PHRASES.map((group, gi) => `
+  el.innerHTML = renderApiBanner() + PHRASES.map((group, gi) => `
     <div class="card phrase-group">
       <div class="phrase-group-title">${group.group}</div>
       ${group.items.map((p, pi) => `
