@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amanda's Japanese Workbook</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wanakana/5.3.1/wanakana.min.js"></script>
 <style>
   :root {
     --pink: #e8a0b0; --pink-light: #fdf0f3; --pink-mid: #f5d0da;
@@ -129,7 +130,15 @@
   .phrase-row:last-child { border-bottom: none; }
   .phrase-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 1rem; min-width: 160px; }
   .phrase-romaji { font-size: 0.78rem; color: var(--red); font-weight: 600; margin-top: 2px; }
-  .phrase-en { font-size: 0.85rem; color: var(--mid); padding-top: 3px; }
+  .phrase-en { font-size: 0.85rem; color: var(--mid); padding-top: 3px; flex: 1; }
+  .phrase-btns { display: flex; gap: 5px; align-items: flex-start; padding-top: 1px; flex-shrink: 0; }
+  .phrase-btn { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 3px 9px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.4; }
+  .phrase-btn:hover { background: var(--pink-light); }
+  .phrase-btn.listening { background: var(--red); color: #fff; border-color: var(--red); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .phrase-feedback { font-size: 0.78rem; margin-top: 5px; min-height: 1em; }
+  .phrase-feedback.ok { color: #2a9d2a; font-weight: 700; }
+  .phrase-feedback.err { color: #c0392b; }
 
   /* KANA */
   .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
@@ -1667,20 +1676,130 @@ function toggleGrammar(i) {
 }
 
 // ═══════════════════════════════════════════════════════
+//  SPEECH
+// ═══════════════════════════════════════════════════════
+const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+// Cache the best Japanese voice once loaded
+let _jpVoice = null;
+function getBestJpVoice() {
+  if (_jpVoice) return _jpVoice;
+  const voices = window.speechSynthesis.getVoices();
+  const jp = voices.filter(v => v.lang.startsWith('ja'));
+  // Prefer Google neural voice, then any "enhanced" / "premium", then anything
+  _jpVoice = jp.find(v => /Google/i.test(v.name))
+           || jp.find(v => /Enhanced|Premium|Neural|Natural/i.test(v.name))
+           || jp[0]
+           || null;
+  return _jpVoice;
+}
+// Trigger voice list load (Chrome lazy-loads them)
+window.speechSynthesis.getVoices();
+window.speechSynthesis.addEventListener('voiceschanged', () => { _jpVoice = null; });
+
+function speakJP(text) {
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = 0.85;
+  const voice = getBestJpVoice();
+  if (voice) u.voice = voice;
+  window.speechSynthesis.speak(u);
+}
+
+function normalizeJP(s) {
+  // wanakana converts katakana→hiragana and handles long vowel marks
+  const h = (typeof wanakana !== 'undefined') ? wanakana.toHiragana(s, {passRomaji: true}) : s;
+  return h.replace(/[\s　。、！？!?,.'"「」【】ー～]/g, '').trim().toLowerCase();
+}
+
+function speechHint(normHeard, normExpected) {
+  if (!normHeard || normHeard.length < 2) return 'Nothing was picked up clearly — try speaking a little louder.';
+  // Find how many characters match from the start
+  let match = 0;
+  while (match < normHeard.length && match < normExpected.length && normHeard[match] === normExpected[match]) match++;
+  const pct = match / normExpected.length;
+  if (pct >= 0.8) return 'Very close! Pay attention to the ending.';
+  if (pct >= 0.5) return 'Good start — the second half needs work.';
+  if (normExpected.endsWith(normHeard.slice(-2))) return 'The ending sounds right — check the beginning.';
+  return 'Try saying it more slowly, one part at a time.';
+}
+
+function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
+  if (!SpeechRecog) {
+    feedbackEl.textContent = 'Speech recognition not supported — try Chrome.';
+    feedbackEl.className = 'phrase-feedback err';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const rec = new SpeechRecog();
+  rec.lang = 'ja-JP';
+  rec.interimResults = false;
+  rec.maxAlternatives = 10; // Chrome often returns hiragana as a lower-ranked alternative
+  btn.textContent = '⏹';
+  btn.classList.add('listening');
+  feedbackEl.textContent = '🎙 Listening…';
+  feedbackEl.className = 'phrase-feedback';
+  rec.start();
+  rec.onresult = (e) => {
+    const transcripts = Array.from(e.results[0]).map(r => r.transcript);
+    const heard = transcripts[0];
+    const normJp = normalizeJP(expectedJp);
+    const normEn = normalizeJP(expectedEn);
+    // Check all alternatives — Chrome may return kanji first and hiragana further down
+    const matched = transcripts.some(t => {
+      const n = normalizeJP(t);
+      return n === normJp || n === normEn;
+    });
+    if (matched) {
+      feedbackEl.innerHTML = `✅ Correct!`;
+      feedbackEl.className = 'phrase-feedback ok';
+    } else {
+      const normHeard = normalizeJP(heard);
+      const hint = speechHint(normHeard, normJp);
+      feedbackEl.innerHTML =
+        `❌ Heard: <em>${heard}</em><br>` +
+        `<span style="opacity:0.85">Expected: <em>${expectedJp}</em></span><br>` +
+        `<span style="font-style:italic;opacity:0.75">${hint}</span>`;
+      feedbackEl.className = 'phrase-feedback err';
+    }
+    btn.textContent = '🎤';
+    btn.classList.remove('listening');
+  };
+  rec.onerror = (e) => {
+    feedbackEl.textContent = e.error === 'no-speech' ? 'No speech detected — try again.' : `Error: ${e.error}`;
+    feedbackEl.className = 'phrase-feedback err';
+    btn.textContent = '🎤';
+    btn.classList.remove('listening');
+  };
+  rec.onend = () => {
+    if (btn.classList.contains('listening')) {
+      btn.textContent = '🎤';
+      btn.classList.remove('listening');
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════
 //  PHRASES
 // ═══════════════════════════════════════════════════════
 function buildPhrases() {
   const el = document.getElementById('phrases-content');
-  el.innerHTML = PHRASES.map(group => `
+  el.innerHTML = PHRASES.map((group, gi) => `
     <div class="card phrase-group">
       <div class="phrase-group-title">${group.group}</div>
-      ${group.items.map(p => `
-        <div class="phrase-row">
-          <div>
+      ${group.items.map((p, pi) => `
+        <div class="phrase-row" data-jp="${p.jp.replace(/"/g, '&quot;')}" data-en="${p.en.replace(/"/g, '&quot;')}">
+          <div style="flex:1;min-width:0">
             <div class="phrase-jp jp">${p.jp}</div>
             <div class="phrase-romaji">${p.rom}</div>
+            <div class="phrase-feedback" id="pf-${gi}-${pi}"></div>
           </div>
           <div class="phrase-en">${p.en}</div>
+          <div class="phrase-btns">
+            <button class="phrase-btn" title="Hear pronunciation" onclick="speakJP(this.closest('.phrase-row').dataset.jp)">🔊</button>
+            <button class="phrase-btn" title="Practice speaking" onclick="listenJP(this.closest('.phrase-row').dataset.jp, this.closest('.phrase-row').dataset.en, this, document.getElementById('pf-${gi}-${pi}'))">🎤</button>
+          </div>
         </div>
       `).join('')}
     </div>
