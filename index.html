@@ -7,6 +7,8 @@
 <title>Amanda's Japanese Workbook</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/wanakana/5.3.1/wanakana.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.3/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
 <style>
   :root {
     --pink: #e8a0b0; --pink-light: #fdf0f3; --pink-mid: #f5d0da;
@@ -1707,8 +1709,28 @@ function speakJP(text) {
   window.speechSynthesis.speak(u);
 }
 
+// ── Kuroshiro: kanji → hiragana (loads dictionary in background) ──
+let _kuroshiro = null;
+let _kuroshiroReady = false;
+(async () => {
+  try {
+    _kuroshiro = new Kuroshiro();
+    await _kuroshiro.init(new KuromojiAnalyzer({
+      dictPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict'
+    }));
+    _kuroshiroReady = true;
+  } catch(e) { console.warn('Kuroshiro init failed', e); }
+})();
+
+async function toHiraganaFull(text) {
+  if (_kuroshiroReady) {
+    return await _kuroshiro.convert(text, { to: 'hiragana', mode: 'normal' });
+  }
+  // Fallback until dictionary loads: katakana→hiragana only
+  return (typeof wanakana !== 'undefined') ? wanakana.toHiragana(text, { passRomaji: true }) : text;
+}
+
 function normalizeJP(s) {
-  // wanakana converts katakana→hiragana and handles long vowel marks
   const h = (typeof wanakana !== 'undefined') ? wanakana.toHiragana(s, {passRomaji: true}) : s;
   return h.replace(/[\s　。、！？!?,.'"「」【】ー～]/g, '').trim().toLowerCase();
 }
@@ -1741,21 +1763,25 @@ function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
   feedbackEl.textContent = '🎙 Listening…';
   feedbackEl.className = 'phrase-feedback';
   rec.start();
-  rec.onresult = (e) => {
+  rec.onresult = async (e) => {
     const transcripts = Array.from(e.results[0]).map(r => r.transcript);
     const heard = transcripts[0];
     const normJp = normalizeJP(expectedJp);
     const normEn = normalizeJP(expectedEn);
-    // Check all alternatives — Chrome may return kanji first and hiragana further down
-    const matched = transcripts.some(t => {
-      const n = normalizeJP(t);
-      return n === normJp || n === normEn;
-    });
+    // Convert all transcripts through kanji→hiragana before comparing
+    const normTranscripts = await Promise.all(
+      transcripts.map(t => toHiraganaFull(t).then(h => normalizeJP(h)))
+    );
+    const matched = normTranscripts.some(n => n === normJp || n === normEn);
     if (matched) {
       feedbackEl.innerHTML = `✅ Correct!`;
       feedbackEl.className = 'phrase-feedback ok';
+    } else if (!_kuroshiroReady) {
+      // Kanji → hiragana converter not ready yet — can't reliably judge, ask to retry
+      feedbackEl.innerHTML = `Still setting up — tap 🎤 again in a moment.`;
+      feedbackEl.className = 'phrase-feedback';
     } else {
-      const normHeard = normalizeJP(heard);
+      const normHeard = normTranscripts[0];
       const hint = speechHint(normHeard, normJp);
       feedbackEl.innerHTML =
         `❌ Heard: <em>${heard}</em><br>` +
