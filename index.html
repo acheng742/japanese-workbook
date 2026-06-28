@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amanda's Japanese Workbook</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/wanakana/5.3.1/wanakana.min.js"></script>
 <style>
   :root {
     --pink: #e8a0b0; --pink-light: #fdf0f3; --pink-mid: #f5d0da;
@@ -134,17 +133,6 @@
   .phrase-btns { display: flex; gap: 5px; align-items: flex-start; padding-top: 1px; flex-shrink: 0; }
   .phrase-btn { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 3px 9px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.4; }
   .phrase-btn:hover { background: var(--pink-light); }
-  .phrase-btn.listening { background: var(--red); color: #fff; border-color: var(--red); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-  .phrase-feedback { font-size: 0.78rem; margin-top: 5px; min-height: 1em; }
-  .phrase-feedback.ok { color: #2a9d2a; font-weight: 700; }
-  .phrase-feedback.err { color: #c0392b; }
-  /* API key setup banner */
-  .api-banner { display:flex; align-items:center; gap:10px; background:var(--pink-light); border:1.5px solid var(--pink-mid); border-radius:10px; padding:10px 14px; margin-bottom:18px; font-size:0.82rem; flex-wrap:wrap; }
-  .api-banner input { flex:1; min-width:180px; border:1.5px solid var(--pink-mid); border-radius:8px; padding:5px 10px; font-size:0.82rem; outline:none; }
-  .api-banner input:focus { border-color:var(--red); }
-  .api-banner-ok { color:#2a9d2a; font-weight:700; }
-  .api-banner-err { color:#c0392b; }
 
   /* KANA */
   .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
@@ -1682,9 +1670,8 @@ function toggleGrammar(i) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  SPEECH
+//  SPEECH (TTS only)
 // ═══════════════════════════════════════════════════════
-const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 // Cache the best Japanese voice once loaded
 let _jpVoice = null;
@@ -1713,211 +1700,24 @@ function speakJP(text) {
   window.speechSynthesis.speak(u);
 }
 
-function normalizeJP(s) {
-  const h = (typeof wanakana !== 'undefined') ? wanakana.toHiragana(s, {passRomaji: true}) : s;
-  return h.replace(/[\s　。、！？!?,.'"「」【】ー～]/g, '').trim().toLowerCase();
-}
-
-// Convert text to romaji, stripping kanji and punctuation, leaving only ASCII letters.
-// Katakana and hiragana → romaji via wanakana; kanji pass through then get stripped.
-// This avoids Unicode range issues entirely and works for mixed kanji/kana text.
-function toRomajiStripped(s) {
-  if (typeof wanakana === 'undefined') return '';
-  return wanakana.toRomaji(
-    wanakana.toHiragana(s, {passRomaji: true})
-  ).replace(/[^a-z]/gi, '').toLowerCase();
-}
-
-// Check if the romaji of the heard text is a subsequence of the expected romaji.
-// e.g. 私はチョコが食べたいです → "wachokogabetaidesu"
-//      which is a subsequence of "watashiwachokogatabetaidesu" ✅
-function romajiSubsequenceMatch(heard, expectedJp) {
-  const heardRom = toRomajiStripped(heard);
-  const expRom   = toRomajiStripped(expectedJp);
-  if (heardRom.length < 4) return false;
-  let hi = 0;
-  for (let ei = 0; ei < expRom.length && hi < heardRom.length; ei++) {
-    if (heardRom[hi] === expRom[ei]) hi++;
-  }
-  return hi === heardRom.length;
-}
-
-function speechHint(normHeard, normExpected) {
-  if (!normHeard || normHeard.length < 2) return 'Nothing was picked up clearly — try speaking a little louder.';
-  // Find how many characters match from the start
-  let match = 0;
-  while (match < normHeard.length && match < normExpected.length && normHeard[match] === normExpected[match]) match++;
-  const pct = match / normExpected.length;
-  if (pct >= 0.8) return 'Very close! Pay attention to the ending.';
-  if (pct >= 0.5) return 'Good start — the second half needs work.';
-  if (normExpected.endsWith(normHeard.slice(-2))) return 'The ending sounds right — check the beginning.';
-  return 'Try saying it more slowly, one part at a time.';
-}
-
-// ── Gemini API key helpers ──────────────────────────────
-const GEMINI_KEY_STORAGE = 'jpwb_gemini_key';
-function getGeminiKey() { return localStorage.getItem(GEMINI_KEY_STORAGE) || ''; }
-function setGeminiKey(k) {
-  if (k) localStorage.setItem(GEMINI_KEY_STORAGE, k.trim());
-  else localStorage.removeItem(GEMINI_KEY_STORAGE);
-}
-
-// ── Render the API key banner (called by buildPhrases) ──
-function renderApiBanner() {
-  const key = getGeminiKey();
-  return `
-    <div class="api-banner" id="api-banner">
-      <span>🔑 Gemini API key:</span>
-      <input type="password" id="gemini-key-input" placeholder="Paste your key here…"
-             value="${key ? '••••••••' : ''}"
-             oninput="handleGeminiKeyInput(this)"
-             onfocus="if(getGeminiKey())this.value=''"
-             onblur="if(!this.value.trim()&&getGeminiKey())this.value='••••••••'">
-      <span id="api-banner-status" class="${key ? 'api-banner-ok' : 'api-banner-err'}">
-        ${key ? '✅ Saved' : '⚠️ No key — get a free key at ai.google.dev'}
-      </span>
-    </div>`;
-}
-function handleGeminiKeyInput(input) {
-  const val = input.value.trim();
-  if (val && val !== '••••••••') {
-    setGeminiKey(val);
-    const st = document.getElementById('api-banner-status');
-    if (st) { st.textContent = '✅ Saved'; st.className = 'api-banner-ok'; }
-  }
-}
-
-// ── Gemini semantic comparison ──────────────────────────
-async function checkWithGemini(heard, expectedJp, expectedEn) {
-  const key = getGeminiKey();
-  if (!key) return null; // no key → fall back to text match
-  const prompt = `You are a Japanese language teacher. A student was asked to say this Japanese sentence: "${expectedJp}" (meaning: "${expectedEn}").
-The speech recogniser heard: "${heard}".
-Even if the spelling differs (e.g. kanji vs hiragana, or a particle written differently), decide if the student said essentially the correct sentence.
-Reply with exactly one JSON object: {"correct": true} or {"correct": false, "hint": "one short sentence of specific feedback for the student in English"}`;
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          contents: [{parts: [{text: prompt}]}],
-          generationConfig: {temperature: 0, maxOutputTokens: 80}
-        })
-      }
-    );
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return {error: err?.error?.message || `HTTP ${res.status}`};
-    }
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch(e) {
-    return {error: e.message};
-  }
-}
-
-async function listenJP(expectedJp, expectedEn, btn, feedbackEl) {
-  if (!SpeechRecog) {
-    feedbackEl.textContent = 'Speech recognition not supported — try Chrome.';
-    feedbackEl.className = 'phrase-feedback err';
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const rec = new SpeechRecog();
-  rec.lang = 'ja-JP';
-  rec.interimResults = false;
-  rec.maxAlternatives = 10;
-  btn.textContent = '⏹';
-  btn.classList.add('listening');
-  feedbackEl.textContent = '🎙 Listening…';
-  feedbackEl.className = 'phrase-feedback';
-  rec.start();
-  rec.onresult = async (e) => {
-    btn.textContent = '🎤';
-    btn.classList.remove('listening');
-    const transcripts = Array.from(e.results[0]).map(r => r.transcript);
-    const heard = transcripts[0];
-
-    // Show "checking" state while Gemini runs
-    feedbackEl.textContent = '🔍 Checking…';
-    feedbackEl.className = 'phrase-feedback';
-
-    const geminiResult = await checkWithGemini(heard, expectedJp, expectedEn);
-
-    if (geminiResult && !geminiResult.error) {
-      // ── Gemini answered ──
-      if (geminiResult.correct) {
-        feedbackEl.innerHTML = `✅ Correct!`;
-        feedbackEl.className = 'phrase-feedback ok';
-      } else {
-        const hint = geminiResult.hint || 'Try again — focus on each part carefully.';
-        feedbackEl.innerHTML =
-          `❌ Heard: <em>${heard}</em><br>` +
-          `<span style="font-style:italic;opacity:0.8">${hint}</span>`;
-        feedbackEl.className = 'phrase-feedback err';
-      }
-    } else {
-      // ── No Gemini key or error → fall back to local matching ──
-      if (geminiResult && geminiResult.error) {
-        console.warn('Gemini error:', geminiResult.error);
-      }
-      const normJp = normalizeJP(expectedJp);
-      const normEn = normalizeJP(expectedEn);
-      const matched =
-        transcripts.some(t => { const n = normalizeJP(t); return n === normJp || n === normEn; }) ||
-        romajiSubsequenceMatch(heard, expectedJp);
-      if (matched) {
-        feedbackEl.innerHTML = `✅ Correct!`;
-        feedbackEl.className = 'phrase-feedback ok';
-      } else {
-        const normHeard = normalizeJP(heard);
-        const hint = speechHint(normHeard, normJp);
-        feedbackEl.innerHTML =
-          `❌ Heard: <em>${heard}</em><br>` +
-          `<span style="opacity:0.85">Expected: <em>${expectedJp}</em></span><br>` +
-          `<span style="font-style:italic;opacity:0.75">${hint}</span>`;
-        feedbackEl.className = 'phrase-feedback err';
-      }
-    }
-  };
-  rec.onerror = (e) => {
-    feedbackEl.textContent = e.error === 'no-speech' ? 'No speech detected — try again.' : `Error: ${e.error}`;
-    feedbackEl.className = 'phrase-feedback err';
-    btn.textContent = '🎤';
-    btn.classList.remove('listening');
-  };
-  rec.onend = () => {
-    if (btn.classList.contains('listening')) {
-      btn.textContent = '🎤';
-      btn.classList.remove('listening');
-    }
-  };
-}
 
 // ═══════════════════════════════════════════════════════
 //  PHRASES
 // ═══════════════════════════════════════════════════════
 function buildPhrases() {
   const el = document.getElementById('phrases-content');
-  el.innerHTML = renderApiBanner() + PHRASES.map((group, gi) => `
+  el.innerHTML = PHRASES.map((group) => `
     <div class="card phrase-group">
       <div class="phrase-group-title">${group.group}</div>
-      ${group.items.map((p, pi) => `
-        <div class="phrase-row" data-jp="${p.jp.replace(/"/g, '&quot;')}" data-en="${p.en.replace(/"/g, '&quot;')}">
+      ${group.items.map((p) => `
+        <div class="phrase-row" data-jp="${p.jp.replace(/"/g, '&quot;')}">
           <div style="flex:1;min-width:0">
             <div class="phrase-jp jp">${p.jp}</div>
             <div class="phrase-romaji">${p.rom}</div>
-            <div class="phrase-feedback" id="pf-${gi}-${pi}"></div>
           </div>
           <div class="phrase-en">${p.en}</div>
           <div class="phrase-btns">
             <button class="phrase-btn" title="Hear pronunciation" onclick="speakJP(this.closest('.phrase-row').dataset.jp)">🔊</button>
-            <button class="phrase-btn" title="Practice speaking" onclick="listenJP(this.closest('.phrase-row').dataset.jp, this.closest('.phrase-row').dataset.en, this, document.getElementById('pf-${gi}-${pi}'))">🎤</button>
           </div>
         </div>
       `).join('')}
