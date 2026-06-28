@@ -539,6 +539,14 @@ const VOCAB = [
   {jp:'りょこう',rom:'ryokou',en:'travel / trip',cat:'Nouns'},
   {jp:'えいが',rom:'eiga',en:'movie / film',cat:'Nouns'},
   {jp:'おんがく',rom:'ongaku',en:'music',cat:'Nouns'},
+  {jp:'ゆかた',rom:'yukata',en:'yukata (casual summer kimono)',cat:'Nouns'},
+  {jp:'かきごおり',rom:'kakigoori',en:'shaved ice',cat:'Nouns'},
+  {jp:'ぎゅうにゅう',rom:'gyuunyuu',en:'milk',cat:'Nouns'},
+  {jp:'とうにゅう',rom:'tounyuu',en:'soy milk',cat:'Nouns'},
+  {jp:'のみもの',rom:'nomimono',en:'drink / beverage',cat:'Nouns'},
+  {jp:'たべもの',rom:'tabemono',en:'food',cat:'Nouns'},
+  {jp:'やさい',rom:'yasai',en:'vegetables',cat:'Nouns'},
+  {jp:'にく',rom:'niku',en:'meat',cat:'Nouns'},
   // ── LOCATION ──
   {jp:'ここ',rom:'koko',en:'here',cat:'Location'},
   {jp:'そこ',rom:'soko',en:'there (near you)',cat:'Location'},
@@ -597,6 +605,7 @@ const VOCAB = [
   {jp:'すき',rom:'suki',en:'like / fond of',cat:'な-Adjectives'},
   {jp:'きらい',rom:'kirai',en:'dislike',cat:'な-Adjectives'},
   {jp:'だいすき',rom:'daisuki',en:'love / very fond of',cat:'な-Adjectives'},
+  {jp:'だいきらい',rom:'daikirai',en:'hate / really dislike',cat:'な-Adjectives'},
   {jp:'きれい',rom:'kirei',en:'beautiful / clean',cat:'な-Adjectives'},
   {jp:'げんき',rom:'genki',en:'healthy / energetic',cat:'な-Adjectives'},
   {jp:'しずか',rom:'shizuka',en:'quiet',cat:'な-Adjectives'},
@@ -955,6 +964,31 @@ const GRAMMAR = [
       {jp:'ごご12じ29ふん',rom:'gogo juuniji nijuukyuufun',en:'12:29 PM'},
     ]
   },
+  // ─── 16. 好き(な) / きらい(な) ───
+  {
+    title:'好き(な) / きらい(な) — Likes & Dislikes',
+    tag:'Expression',
+    pattern:{jp:'[Person] は [Object] が すき/きらい です。',en:'"ga" marks what is liked/disliked; "wa" marks the person'},
+    note:'すき and きらい are な-adjectives even though they don\'t look like typical adjectives. The particle が marks the object of liking/disliking (not を). Intensify with 大 (だい): 大好き (love it!) and 大きらい (hate it!). For "neither like nor dislike" use すきでもきらいでもないです. When using すき/きらい to modify a noun, add な: すきな〜 (my favorite ~). Use のことが in romantic or familial contexts.',
+    tableHtml:`<table class="conj-table"><thead><tr><th>Feeling</th><th>Japanese</th><th>Romaji</th><th>Notes</th></tr></thead><tbody>
+      <tr><td>Like</td><td><span class="jp">すきです</span></td><td>suki desu</td><td>な-adjective</td></tr>
+      <tr><td>Dislike</td><td><span class="jp">きらいです</span></td><td>kirai desu</td><td>な-adjective</td></tr>
+      <tr><td>Love / Really like</td><td><span class="jp">だいすきです</span></td><td>daisuki desu</td><td>大 intensifier</td></tr>
+      <tr><td>Hate / Really dislike</td><td><span class="jp">だいきらいです</span></td><td>daikirai desu</td><td>大 intensifier</td></tr>
+      <tr><td>Neither like nor dislike</td><td><span class="jp">すきでもきらいでもないです</span></td><td>suki demo kirai demo nai desu</td><td>neutral</td></tr>
+    </tbody></table>`,
+    examples:[
+      {jp:'わたしはコーヒーがすきです。',rom:'Watashi wa koohii ga suki desu.',en:'I like coffee.'},
+      {jp:'たけしさんはコーヒーがだいすきです。',rom:'Takeshi-san wa koohii ga daisuki desu.',en:'Takeshi loves coffee.'},
+      {jp:'わたしはぎゅうにゅうがきらいです。',rom:'Watashi wa gyuunyuu ga kirai desu.',en:'I dislike milk.'},
+      {jp:'きらいなのみものはぎゅうにゅうです。',rom:'Kirai na nomimono wa gyuunyuu desu.',en:'My disliked drink is milk.'},
+      {jp:'すきでもきらいでもないです。',rom:'Suki demo kirai demo nai desu.',en:'I neither like nor dislike it.'},
+      {jp:'わたしはやさいはすきですが、にくはきらいです。',rom:'Watashi wa yasai wa suki desu ga, niku wa kirai desu.',en:'I like vegetables, but I dislike meat.'},
+      {jp:'わたしのすきなたべものはあまいものです。',rom:'Watashi no suki na tabemono wa amai mono desu.',en:'My favorite food is sweet things.'},
+      {jp:'すきなのみものはなんですか。',rom:'Suki na nomimono wa nan desu ka.',en:'What is your favorite drink?'},
+      {jp:'わたしのすきなのみものはみずです。',rom:'Watashi no suki na nomimono wa mizu desu.',en:'My favorite drink is water.'},
+    ]
+  },
 ];
 
 const PHRASES = [
@@ -1010,6 +1044,15 @@ const PHRASES = [
       {jp:'わたしはふじさんをみたいです。',rom:'Watashi wa fujisan wo mitai desu.',en:'I want to see Mt. Fuji.'},
       {jp:'わたしはせんそうじにいきたいです。',rom:'Watashi wa Sensouji ni ikitai desu.',en:'I want to go to Sensoji.'},
       {jp:'わたしはうえのこうえんにいきたいです。',rom:'Watashi wa Ueno Kouen ni ikitai desu.',en:'I want to go to Ueno Park.'},
+      {jp:'わたしのすきなたべものはあまいものです。',rom:'Watashi no suki na tabemono wa amai mono desu.',en:'My favorite food is sweet things.'},
+      {jp:'すきなのみものはなんですか。',rom:'Suki na nomimono wa nan desu ka.',en:'What is your favorite drink?'},
+      {jp:'わたしのすきなのみものはみずです。',rom:'Watashi no suki na nomimono wa mizu desu.',en:'My favorite drink is water.'},
+      {jp:'きらいなのみものはぎゅうにゅうです。',rom:'Kirai na nomimono wa gyuunyuu desu.',en:'My disliked drink is milk.'},
+      {jp:'すきでもきらいでもないです。',rom:'Suki demo kirai demo nai desu.',en:'I neither like nor dislike it.'},
+      {jp:'わたしはやさいはすきですが、にくはきらいです。',rom:'Watashi wa yasai wa suki desu ga, niku wa kirai desu.',en:'I like vegetables, but I dislike meat.'},
+      {jp:'たけしさんはコーヒーがだいすきです。',rom:'Takeshi-san wa koohii ga daisuki desu.',en:'Takeshi loves coffee.'},
+      {jp:'あつい夏の日にわたしはきれいなゆかたをきておいしくてつめたいかきごおりをたべました。',rom:'Atsui natsu no hi ni watashi wa kirei na yukata wo kite oishikute tsumetai kakigoori wo tabemashita.',en:'On a hot summer day, I wore a beautiful yukata and ate delicious cold shaved ice.'},
+      {jp:'わたしはサッカーをみることがあまりすきではありません。',rom:'Watashi wa sakkaa wo miru koto ga amari suki de wa arimasen.',en:'I don\'t really like watching soccer.'},
     ]
   },
   {
