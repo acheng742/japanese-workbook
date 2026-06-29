@@ -135,8 +135,8 @@
   .phrase-btn { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 3px 9px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.4; }
   .phrase-btn:hover { background: var(--pink-light); }
 
-  /* Phrase category chips */
-  .phrase-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+  /* Phrase / grammar category chips */
+  .phrase-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .phrase-chip { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 5px 13px; font-size: 0.8rem; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; color: var(--dark); line-height: 1.4; white-space: nowrap; }
   .phrase-chip:hover { background: var(--pink-light); }
   .phrase-chip.active { background: var(--red); color: #fff; border-color: var(--red); font-weight: 700; }
@@ -208,10 +208,13 @@
     .quiz-options { grid-template-columns: 1fr; }
     .vocab-grid { grid-template-columns: 1fr 1fr; }
     .example-row { flex-direction: column; gap: 4px; }
-    .phrase-row { flex-wrap: wrap; }
-    .phrase-jp { min-width: unset; width: 100%; }
-    .phrase-en { width: 100%; padding-top: 4px; flex: unset; }
-    .phrase-btns { margin-left: auto; }
+    /* Chips: single scrollable row, no wrapping */
+    .phrase-chips { flex-wrap: nowrap; padding-bottom: 4px; }
+    /* Phrase rows: JP + button on line 1, EN on line 2 */
+    .phrase-row { flex-wrap: wrap; align-items: center; }
+    .phrase-jp { min-width: 0; flex: 1; }
+    .phrase-en { width: 100%; order: 3; padding-top: 4px; flex: unset; }
+    .phrase-btns { flex-shrink: 0; align-self: flex-start; padding-top: 2px; }
   }
 </style>
 </head>
