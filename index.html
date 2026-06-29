@@ -101,11 +101,10 @@
 
   /* GRAMMAR */
   .grammar-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
-  .grammar-header { background: var(--pink-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--pink-mid); }
+  .grammar-header { background: var(--pink-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pink-mid); }
   .grammar-title { font-weight: 700; font-size: 0.95rem; color: var(--dark); }
   .grammar-tag { font-size: 0.7rem; background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-  .grammar-body { padding: 18px; display: none; }
-  .grammar-body.open { display: block; }
+  .grammar-body { padding: 18px; }
   .grammar-pattern { background: #fff8f0; border-left: 4px solid var(--orange); padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 14px; font-family: 'Noto Sans JP', sans-serif; }
   .grammar-pattern .pattern-jp { font-size: 1.1rem; }
   .grammar-pattern .pattern-en { font-size: 0.82rem; color: var(--mid); margin-top: 3px; }
@@ -1637,11 +1636,40 @@ function buildNumberCharts() {
 // ═══════════════════════════════════════════════════════
 //  GRAMMAR
 // ═══════════════════════════════════════════════════════
+let _activeGramChip = 'All';
+
+function filterGrammar(tag) {
+  _activeGramChip = tag;
+  document.querySelectorAll('.grammar-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.tag === tag);
+  });
+  document.querySelectorAll('.grammar-card').forEach(card => {
+    const cardTag = card.dataset.tag;
+    // normalise Particle/Particles to the same chip
+    const normCard = cardTag === 'Particles' ? 'Particle' : cardTag;
+    card.style.display = (tag === 'All' || normCard === tag) ? '' : 'none';
+  });
+}
+
 function buildGrammar() {
   const el = document.getElementById('grammar-cards');
-  el.innerHTML = GRAMMAR.map((g, i) => `
-    <div class="grammar-card">
-      <div class="grammar-header" onclick="toggleGrammar(${i})">
+
+  // Collect unique tags (normalise Particles → Particle)
+  const seen = new Set();
+  const tags = [];
+  GRAMMAR.forEach(g => {
+    const t = g.tag === 'Particles' ? 'Particle' : g.tag;
+    if (!seen.has(t)) { seen.add(t); tags.push(t); }
+  });
+
+  const chipsHtml = `<div class="phrase-chips grammar-chips-row">
+    <button class="phrase-chip grammar-chip active" data-tag="All" onclick="filterGrammar('All')">All</button>
+    ${tags.map(t => `<button class="phrase-chip grammar-chip" data-tag="${t}" onclick="filterGrammar('${t}')">${t}</button>`).join('')}
+  </div>`;
+
+  const cardsHtml = GRAMMAR.map((g, i) => `
+    <div class="grammar-card" data-tag="${g.tag}">
+      <div class="grammar-header">
         <span class="grammar-title">${g.title}</span>
         <span class="grammar-tag">${g.tag}</span>
       </div>
@@ -1666,13 +1694,8 @@ function buildGrammar() {
       </div>
     </div>
   `).join('');
-  // open first one
-  document.getElementById('gram-0').classList.add('open');
-}
 
-function toggleGrammar(i) {
-  const el = document.getElementById('gram-' + i);
-  el.classList.toggle('open');
+  el.innerHTML = chipsHtml + cardsHtml;
 }
 
 // ═══════════════════════════════════════════════════════
