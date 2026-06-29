@@ -101,10 +101,12 @@
 
   /* GRAMMAR */
   .grammar-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
-  .grammar-header { background: var(--pink-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pink-mid); }
+  .grammar-header { background: var(--pink-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--pink-mid); }
+  .grammar-header:hover { background: var(--pink-mid); }
   .grammar-title { font-weight: 700; font-size: 0.95rem; color: var(--dark); }
   .grammar-tag { font-size: 0.7rem; background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-  .grammar-body { padding: 18px; }
+  .grammar-body { padding: 18px; display: none; }
+  .grammar-body.open { display: block; }
   .grammar-pattern { background: #fff8f0; border-left: 4px solid var(--orange); padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 14px; font-family: 'Noto Sans JP', sans-serif; }
   .grammar-pattern .pattern-jp { font-size: 1.1rem; }
   .grammar-pattern .pattern-en { font-size: 0.82rem; color: var(--mid); margin-top: 3px; }
@@ -206,6 +208,10 @@
     .quiz-options { grid-template-columns: 1fr; }
     .vocab-grid { grid-template-columns: 1fr 1fr; }
     .example-row { flex-direction: column; gap: 4px; }
+    .phrase-row { flex-wrap: wrap; }
+    .phrase-jp { min-width: unset; width: 100%; }
+    .phrase-en { width: 100%; padding-top: 4px; flex: unset; }
+    .phrase-btns { margin-left: auto; }
   }
 </style>
 </head>
@@ -251,14 +257,20 @@
     <div style="text-align:center;font-size:0.8rem;color:var(--light);">Click any cell in the charts below to reveal/hide its romaji</div>
   </div>
 
-  <div class="card">
+  <div class="phrase-chips" style="margin-top:4px;">
+    <button class="phrase-chip active" onclick="filterKanaCards('all')">All</button>
+    <button class="phrase-chip" onclick="filterKanaCards('hiragana')">ひらがな</button>
+    <button class="phrase-chip" onclick="filterKanaCards('katakana')">カタカナ</button>
+  </div>
+
+  <div class="card" id="kana-hiragana-card">
     <div class="kana-section-title">ひらがな Hiragana</div>
     <div class="kana-grid-wrap" id="hiragana-main"></div>
     <div style="margin-top:16px;" class="kana-section-title" style="font-size:0.85rem;">Combination Sounds</div>
     <div class="kana-grid-wrap" id="hiragana-combo"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="kana-katakana-card">
     <div class="kana-section-title">カタカナ Katakana</div>
     <div class="kana-grid-wrap" id="katakana-main"></div>
     <div style="margin-top:16px;" class="kana-section-title" style="font-size:0.85rem;">Combination Sounds</div>
@@ -1361,6 +1373,20 @@ function toggleKana(el) {
   el.classList.toggle('revealed');
 }
 
+function filterKanaCards(type) {
+  // Update chips
+  document.querySelectorAll('#sec-kana .phrase-chip').forEach(c => {
+    const t = c.textContent.trim();
+    c.classList.toggle('active',
+      (type === 'all' && t === 'All') ||
+      (type === 'hiragana' && t === 'ひらがな') ||
+      (type === 'katakana' && t === 'カタカナ')
+    );
+  });
+  document.getElementById('kana-hiragana-card').style.display = (type === 'all' || type === 'hiragana') ? '' : 'none';
+  document.getElementById('kana-katakana-card').style.display = (type === 'all' || type === 'katakana') ? '' : 'none';
+}
+
 function buildAllKana() {
   allKana = [];
   HIRAGANA.forEach(row => row.forEach(c => { if (c.c) allKana.push({c:c.c,r:c.r,type:'hiragana'}); }));
@@ -1644,11 +1670,10 @@ function filterGrammar(tag) {
     c.classList.toggle('active', c.dataset.tag === tag);
   });
   document.querySelectorAll('.grammar-card').forEach(card => {
-    const cardTag = card.dataset.tag;
-    // normalise Particle/Particles to the same chip
-    const normCard = cardTag === 'Particles' ? 'Particle' : cardTag;
+    const normCard = card.dataset.tag === 'Particles' ? 'Particle' : card.dataset.tag;
     card.style.display = (tag === 'All' || normCard === tag) ? '' : 'none';
   });
+  openFirstVisible();
 }
 
 function buildGrammar() {
@@ -1669,7 +1694,7 @@ function buildGrammar() {
 
   const cardsHtml = GRAMMAR.map((g, i) => `
     <div class="grammar-card" data-tag="${g.tag}">
-      <div class="grammar-header">
+      <div class="grammar-header" onclick="toggleGrammar(${i})">
         <span class="grammar-title">${g.title}</span>
         <span class="grammar-tag">${g.tag}</span>
       </div>
@@ -1696,6 +1721,22 @@ function buildGrammar() {
   `).join('');
 
   el.innerHTML = chipsHtml + cardsHtml;
+  // Open first card by default
+  document.getElementById('gram-0').classList.add('open');
+}
+
+function toggleGrammar(i) {
+  document.getElementById('gram-' + i).classList.toggle('open');
+}
+
+function openFirstVisible() {
+  const visible = [...document.querySelectorAll('.grammar-card')]
+    .filter(c => c.style.display !== 'none');
+  visible.forEach((card, i) => {
+    const body = card.querySelector('.grammar-body');
+    if (i === 0) body.classList.add('open');
+    else body.classList.remove('open');
+  });
 }
 
 // ═══════════════════════════════════════════════════════
