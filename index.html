@@ -134,6 +134,12 @@
   .phrase-btn { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 3px 9px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s, color 0.15s; line-height: 1.4; }
   .phrase-btn:hover { background: var(--pink-light); }
 
+  /* Phrase category chips */
+  .phrase-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+  .phrase-chip { background: none; border: 1.5px solid var(--pink-mid); border-radius: 20px; padding: 5px 13px; font-size: 0.8rem; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; color: var(--dark); line-height: 1.4; white-space: nowrap; }
+  .phrase-chip:hover { background: var(--pink-light); }
+  .phrase-chip.active { background: var(--red); color: #fff; border-color: var(--red); font-weight: 700; }
+
   /* KANA */
   .kana-grid-wrap { overflow-x: auto; margin-bottom: 20px; }
   .kana-section-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--dark); display: flex; align-items: center; gap: 8px; }
@@ -1704,9 +1710,29 @@ function speakJP(text) {
 // ═══════════════════════════════════════════════════════
 //  PHRASES
 // ═══════════════════════════════════════════════════════
+let _activeChip = -1; // -1 = All
+
+function filterPhrases(idx) {
+  _activeChip = idx;
+  // Update chips
+  document.querySelectorAll('.phrase-chip').forEach((c, i) => {
+    c.classList.toggle('active', i === idx + 1 || (idx === -1 && i === 0));
+  });
+  // Show/hide groups
+  document.querySelectorAll('.phrase-group').forEach((g, i) => {
+    g.style.display = (idx === -1 || i === idx) ? '' : 'none';
+  });
+}
+
 function buildPhrases() {
   const el = document.getElementById('phrases-content');
-  el.innerHTML = PHRASES.map((group) => `
+  // Chip row: "All" + one chip per group
+  const chipsHtml = `<div class="phrase-chips">
+    <button class="phrase-chip active" onclick="filterPhrases(-1)">All</button>
+    ${PHRASES.map((g, i) => `<button class="phrase-chip" onclick="filterPhrases(${i})">${g.group}</button>`).join('')}
+  </div>`;
+
+  const groupsHtml = PHRASES.map((group) => `
     <div class="card phrase-group">
       <div class="phrase-group-title">${group.group}</div>
       ${group.items.map((p) => `
@@ -1723,6 +1749,8 @@ function buildPhrases() {
       `).join('')}
     </div>
   `).join('');
+
+  el.innerHTML = chipsHtml + groupsHtml;
 }
 
 // ═══════════════════════════════════════════════════════
